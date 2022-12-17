@@ -1,0 +1,14 @@
+﻿@page "/sendall"
+@inherits ConnectBase
+
+<PageTitle>Connect</PageTitle>
+
+<h3>Connect</h3>
+
+<input @bind="messageInput" size="50" /> <br>
+<button class="btn btn-primary" @onclick="SendAll">Send</button>
+<li>@messageOutput</li>
+
+@code {
+
+}

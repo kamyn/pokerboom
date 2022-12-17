@@ -1,0 +1,38 @@
+﻿@page "/"
+@inherits IndexBase
+@inject NavigationManager navigation
+
+<PageTitle>Index</PageTitle>
+
+<AuthorizeView>
+    <Authorized>
+        <h1>You are authorized</h1>
+    </Authorized>
+    <NotAuthorized>
+        @{navigation.NavigateTo("login");}
+    </NotAuthorized>
+</AuthorizeView>
+
+@*<AuthorizeView>
+        <Authorized>
+            @*<div class="nav-item px-3 fixed-bottom">
+                <b class="text-white">Hello, @context.User.Identity.Name!</b>
+                <br/>
+                <b class="text-white">You have: @Balance</b>
+
+                <hr />
+                <button @onclick="@LogOut" class="btn btn-primary">LogOut</button>
+            </div>*@
+@*        </Authorized>
+        <NotAuthorized>
+            <div class="nav-item px-3 fixed-bottom">
+                <div id="login">
+                    <input  />
+                    <input  />
+                </div>
+                <NavLink href="/register" Match="NavLinkMatch.All">
+                    <span>зарегистрироваться</span>
+                </NavLink>
+            </div>
+        </NotAuthorized>
+    </AuthorizeView>*@

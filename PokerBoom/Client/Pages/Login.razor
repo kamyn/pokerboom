@@ -1,0 +1,26 @@
+﻿@inherits LoginBase
+@page "/login"
+
+<AuthorizeView>
+    <Authorized>
+        @{_navigationManager.NavigateTo("/");}
+    </Authorized>
+    <NotAuthorized>
+         <h3>Вход</h3>
+        <EditForm Model="@User" OnSubmit="@Login" Context="someContext">
+            <InputText placeholder="Электронная почта" @bind-Value="User.Login" size="50" /> <br/>
+            <InputText plaseholder="Пароль" type="password" id="password" @bind-Value="User.Password" size="50" /> <br />
+            <button type="submit">Войти</button>
+            <NavLink href="register">
+                или зарегистрироваться
+            </NavLink>
+        </EditForm>
+        <button onclick="@VKLogin">Вконтакте</button>
+    </NotAuthorized>   
+</AuthorizeView>
+
+
+
+@code {
+    
+}
