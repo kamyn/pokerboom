@@ -6,21 +6,31 @@
         @{_navigationManager.NavigateTo("/");}
     </Authorized>
     <NotAuthorized>
-         <h3>Вход</h3>
-        <EditForm Model="@User" OnSubmit="@Login" Context="someContext">
-            <InputText placeholder="Электронная почта" @bind-Value="User.Login" size="50" /> <br/>
-            <InputText plaseholder="Пароль" type="password" id="password" @bind-Value="User.Password" size="50" /> <br />
-            <button type="submit">Войти</button>
-            <NavLink href="register">
-                или зарегистрироваться
-            </NavLink>
+        <MudGrid Class="absolute justify-center align-content-center align-self-center" Style="top: 30%;">
+            <EditForm Model="@User" OnSubmit="@Login" Context="someContext">
+            <DataAnnotationsValidator/>
+            <MudItem>
+                <MudCard>
+                    <MudCardContent>
+                        <MudTextField Label="Логин" @bind-Value="User.Login" For="@(() => User.Login)"/>
+                        <MudTextField Label="Пароль" Class="mt-3" @bind-Value="User.Password" For="@(() => User.Password)" InputType="InputType.Password"/>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mr-3">Войти</MudButton>
+                        <MudButton OnClick="@Reg" Variant="Variant.Outlined" Color="Color.Primary" Class="mr-3">Зарегистрироваться</MudButton>
+                        <MudButton Variant="Variant.Outlined" OnClick="@VKLogin" StartIcon="fab fa-brands fa-vk" 
+                                   Class="ml-auto" IconColor="Color.Primary">Вконтакте</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
         </EditForm>
-        <button onclick="@VKLogin">Вконтакте</button>
-    </NotAuthorized>   
+        </MudGrid>
+    </NotAuthorized>
 </AuthorizeView>
 
-
-
 @code {
-    
+    protected async Task Reg()
+    {
+        _navigationManager.NavigateTo("/register");
+    }
 }

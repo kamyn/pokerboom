@@ -1,5 +1,25 @@
 ﻿@inherits LayoutComponentBase
+@inject AuthenticationStateProvider authProvider
+@inject ILocalStorageService localStorage
 
-<a href="">POKERBOOM</a><br />
+<MudThemeProvider/>
+<MudDialogProvider/>
+<MudSnackbarProvider/>
+
+<a href="">POKERBOOM</a><br/>
+
+<AuthorizeView>
+    <Authorized>
+        <button onclick="@Logout">Выйти</button>
+    </Authorized>
+</AuthorizeView>
 
 @Body
+
+@code {
+    protected async Task Logout()
+    {
+        await localStorage.RemoveItemAsync("authToken");
+        ((AppAuthenticationStateProvider)authProvider).MarkUserAsLoggedOut();
+    }
+}
