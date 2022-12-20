@@ -1,0 +1,31 @@
+﻿@inherits GameBase
+@page "/game"
+
+<MudGrid Class="pa-4 ma-auto d-block">
+    <MudItem Class="d-block" Style="height: 60%;">
+        <div style="position: absolute; margin-top: 70px; width: 100%; height: 60%;">
+            <svg width="930" height="470" style="position:absolute; margin-left: 300px;"> 
+                <ellipse cx="465" cy="235" rx="450" ry="220"
+                      style="fill:#2B5741;stroke:#321909;stroke-width:30" />
+            </svg>
+            <img style="position:absolute; margin-top: 185px; margin-left: 540px" width="75" height="100" src="/img/cards/1.png" hidden="hidden">
+            <img style="position:absolute; margin-top: 185px; margin-left: 635px" width="75" height="100" src="/img/cards/1.png">
+            <img style="position:absolute; margin-top: 185px; margin-left: 730px" width="75" height="100" src="/img/cards/1.png">
+            <img style="position:absolute; margin-top: 185px; margin-left: 825px" width="75" height="100" src="/img/cards/1.png">
+            <img style="position:absolute; margin-top: 185px; margin-left: 920px" width="75" height="100" src="/img/cards/1.png">
+        </div>
+    </MudItem>
+    <MudItem Class="d-block" Style="position:absolute; bottom:2%; right:0%;">
+        <MudPaper >
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary">Чек</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary">Колл</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary">Рейз</MudButton>
+            <MudSlider @bind-Value="value1" Min="20" Max="100" Color="Color.Info" Size="Size.Medium">Ставка: @value1.ToString()</MudSlider>
+        </MudPaper>
+    </MudItem>
+
+</MudGrid>
+
+@code {
+    protected double value1 { get; set; }
+}

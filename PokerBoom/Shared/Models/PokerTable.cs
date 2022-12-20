@@ -10,6 +10,7 @@ namespace PokerBoom.Shared.Models
     {
         public int Id { get; set; }
         public string Name { get; set; }
+        public string Players { get; set; }
         public double SmallBlind { get; set; }
     }
 }
