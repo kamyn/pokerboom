@@ -1,12 +1,27 @@
 ﻿@inherits LayoutComponentBase
 @inject AuthenticationStateProvider authProvider
 @inject ILocalStorageService localStorage
+@inject NavigationManager navigation
 
 <MudThemeProvider/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
-<AuthorizeView>
+<AuthorizeView Roles="Administrator">
+    <Authorized>
+        <MudAppBar Color="Color.Primary" Fixed="false">
+            <MudText Typo="Typo.h6">POKERBOOM</MudText>
+            <MudButton Class="ml-3" Variant="Variant.Outlined" OnClick="ToTableList" Style="color: white">Игровые столы</MudButton>
+            <MudButton Class="ml-3" Variant="Variant.Outlined" OnClick="ToReviewGames" Style="color: white">Просмотр игр</MudButton>
+             <MudLink Href="/gameslist"></MudLink>
+            <MudSpacer />
+            <MudText Typo="Typo.button">Баланс: 1300.52</MudText>
+            <MudButton Class="ml-3" Variant="Variant.Outlined" OnClick="Logout">Выйти</MudButton> 
+        </MudAppBar>
+    </Authorized>
+</AuthorizeView>
+
+<AuthorizeView Roles="User">
     <Authorized>
         <MudAppBar Color="Color.Primary" Fixed="false">
             <MudText Typo="Typo.h6">POKERBOOM</MudText>
@@ -24,5 +39,15 @@
     {
         await localStorage.RemoveItemAsync("authToken");
         ((AppAuthenticationStateProvider)authProvider).MarkUserAsLoggedOut();
+    }
+
+    protected async Task ToReviewGames()
+    {
+        navigation.NavigateTo("/gameslist");
+    }
+
+    protected async Task ToTableList()
+    {
+        navigation.NavigateTo("/");
     }
 }

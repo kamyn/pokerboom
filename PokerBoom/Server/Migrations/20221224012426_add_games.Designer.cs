@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PokerBoom.Server.Data;
 
@@ -10,9 +11,10 @@ using PokerBoom.Server.Data;
 namespace PokerBoom.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221224012426_add_games")]
+    partial class add_games
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,15 +49,15 @@ namespace PokerBoom.Server.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "13fd14c9-99cb-46d2-b390-8dbeaffcc01e",
-                            ConcurrencyStamp = "b6d1d7be-d3e8-485f-a1e9-183cfd233ecc",
+                            Id = "1c8fa601-9ef0-48fc-9b13-3778f239105a",
+                            ConcurrencyStamp = "d0aa2a3d-9506-4bb3-84d9-9818727f3d68",
                             Name = "User",
                             NormalizedName = "USER"
                         },
                         new
                         {
-                            Id = "4914fd68-f140-4a65-a578-e0281d0b3261",
-                            ConcurrencyStamp = "9a3e8b31-ea29-41fc-a25e-21b6db5c26c5",
+                            Id = "383ec349-6aaa-48e6-b63a-cabb1d337326",
+                            ConcurrencyStamp = "2a1e601f-091e-4faf-aa4a-ac1b1cf0ea37",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         });
@@ -329,7 +331,10 @@ namespace PokerBoom.Server.Migrations
                     b.Property<int>("Stack")
                         .HasColumnType("int");
 
-                    b.Property<string>("UserId")
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId1")
                         .IsRequired()
                         .HasColumnType("varchar(255)");
 
@@ -337,7 +342,7 @@ namespace PokerBoom.Server.Migrations
 
                     b.HasIndex("GameId");
 
-                    b.HasIndex("UserId");
+                    b.HasIndex("UserId1");
 
                     b.ToTable("Players");
                 });
@@ -358,14 +363,6 @@ namespace PokerBoom.Server.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Tables");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "стол #1",
-                            SmallBlind = 10
-                        });
                 });
 
             modelBuilder.Entity("PokerBoom.Server.Entities.ApplicationUser", b =>
@@ -481,7 +478,7 @@ namespace PokerBoom.Server.Migrations
 
                     b.HasOne("PokerBoom.Server.Entities.ApplicationUser", "User")
                         .WithMany("Players")
-                        .HasForeignKey("UserId")
+                        .HasForeignKey("UserId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 

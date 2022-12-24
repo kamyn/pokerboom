@@ -1,4 +1,5 @@
 ﻿@inherits TableListBase
+@using PokerBoom.Shared.Models;
 
 <style>
     .selected {
@@ -17,22 +18,22 @@
 
 <MudGrid Spacing="4" Class="pa-6 overflow-hidden">
     <MudItem xs="10">
-        <MudTable Items="@Elements" Dense="true" Filter="new Func<Element,bool>(FilterFunc1)" @bind-SelectedItem="selectedItem1" 
-                  @ref="mudTable" RowClassFunc="@SelectedRowClassFunc" T="Element">
+        <MudTable Items="@Tables" Dense="true" Filter="new Func<PokerTable,bool>(FilterFunc1)" @bind-SelectedItem="selectedTable" 
+                  @ref="mudTable" RowClassFunc="@SelectedRowClassFunc" T="PokerTable">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Игровые столы</MudText>
                 <MudSpacer />
-                <MudTextField @bind-Value="searchString1" Placeholder="Поиск" Adornment="Adornment.Start" Class="mt-0"></MudTextField>
+                <MudTextField @bind-Value="searchTableString" Placeholder="Поиск" Adornment="Adornment.Start" Class="mt-0"></MudTextField>
             </ToolBarContent>
             <HeaderContent>
-                <MudTh><MudTableSortLabel SortBy="new Func<Element, object>(x=>x.Name)">Название</MudTableSortLabel></MudTh>
-                <MudTh><MudTableSortLabel SortBy="new Func<Element, object>(x=>x.Players)">Игроки</MudTableSortLabel></MudTh>
-                <MudTh><MudTableSortLabel SortBy="new Func<Element, object>(x=>x.SB)">Ставки</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<PokerTable, object>(x=>x.Name)">Название</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<PokerTable, object>(x=>x.Players)">Игроки</MudTableSortLabel></MudTh>
+                <MudTh><MudTableSortLabel SortBy="new Func<PokerTable, object>(x=>x.SmallBlind)">Ставки</MudTableSortLabel></MudTh>
             </HeaderContent>
             <RowTemplate>
                 <MudTd DataLabel="Название">@context.Name</MudTd>
                 <MudTd DataLabel="Игроки">@context.Players/6</MudTd>
-                <MudTd DataLabel="Ставки">@context.SB/@context.SB</MudTd>
+                <MudTd DataLabel="Ставки">@context.SmallBlind/@context.SmallBlind</MudTd>
                 </RowTemplate>
             <PagerContent>
                  <MudTablePager HorizontalAlignment="HorizontalAlignment.End" HideRowsPerPage="true" />
@@ -42,7 +43,7 @@
 
     <MudItem xs="2" >
         <MudGrid Class="d-block mt-1">
-            <MudTextField Class="mb-4" @bind-Value="TextValue" Label="Количество фишек" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+            <MudTextField Class="mb-4" @bind-Value="StackAmount" Label="Количество фишек" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="ConnectToTable">Присоединиться</MudButton> 
         </MudGrid>
          

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using PokerBoom.Server.Data;
 
@@ -10,9 +11,10 @@ using PokerBoom.Server.Data;
 namespace PokerBoom.Server.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20221221000551_currency_add")]
+    partial class currency_add
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -47,15 +49,15 @@ namespace PokerBoom.Server.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "13fd14c9-99cb-46d2-b390-8dbeaffcc01e",
-                            ConcurrencyStamp = "b6d1d7be-d3e8-485f-a1e9-183cfd233ecc",
+                            Id = "c9170df6-9c4f-4a48-af18-e163683c43aa",
+                            ConcurrencyStamp = "6dccac1d-8d50-4f4f-9adc-8924b4387b1f",
                             Name = "User",
                             NormalizedName = "USER"
                         },
                         new
                         {
-                            Id = "4914fd68-f140-4a65-a578-e0281d0b3261",
-                            ConcurrencyStamp = "9a3e8b31-ea29-41fc-a25e-21b6db5c26c5",
+                            Id = "faede6e5-850f-4d64-9988-9acab258170d",
+                            ConcurrencyStamp = "83bd1611-bc70-4102-92f9-2351e18c30f2",
                             Name = "Administrator",
                             NormalizedName = "ADMINISTRATOR"
                         });
@@ -233,141 +235,6 @@ namespace PokerBoom.Server.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("PokerBoom.Server.Entities.Bet", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("BetAmount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("GameId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PlayerId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Round")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GameId");
-
-                    b.HasIndex("PlayerId");
-
-                    b.ToTable("Bets");
-                });
-
-            modelBuilder.Entity("PokerBoom.Server.Entities.Board", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("Card1")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Card2")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Card3")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Card4")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Card5")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Boards");
-                });
-
-            modelBuilder.Entity("PokerBoom.Server.Entities.Game", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("BoardId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("TableId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("BoardId")
-                        .IsUnique();
-
-                    b.HasIndex("TableId");
-
-                    b.ToTable("Games");
-                });
-
-            modelBuilder.Entity("PokerBoom.Server.Entities.Player", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<int>("FirstCard")
-                        .HasColumnType("int");
-
-                    b.Property<int>("GameId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SeatPlace")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SecondCard")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Stack")
-                        .HasColumnType("int");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("varchar(255)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GameId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Players");
-                });
-
-            modelBuilder.Entity("PokerBoom.Server.Entities.Table", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<int>("SmallBlind")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("Tables");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Name = "стол #1",
-                            SmallBlind = 10
-                        });
-                });
-
             modelBuilder.Entity("PokerBoom.Server.Entities.ApplicationUser", b =>
                 {
                     b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
@@ -431,91 +298,6 @@ namespace PokerBoom.Server.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-                });
-
-            modelBuilder.Entity("PokerBoom.Server.Entities.Bet", b =>
-                {
-                    b.HasOne("PokerBoom.Server.Entities.Game", "Game")
-                        .WithMany("Bets")
-                        .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PokerBoom.Server.Entities.Player", "Player")
-                        .WithMany("Bets")
-                        .HasForeignKey("PlayerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Game");
-
-                    b.Navigation("Player");
-                });
-
-            modelBuilder.Entity("PokerBoom.Server.Entities.Game", b =>
-                {
-                    b.HasOne("PokerBoom.Server.Entities.Board", "Board")
-                        .WithOne("Game")
-                        .HasForeignKey("PokerBoom.Server.Entities.Game", "BoardId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PokerBoom.Server.Entities.Table", "Table")
-                        .WithMany("Games")
-                        .HasForeignKey("TableId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Board");
-
-                    b.Navigation("Table");
-                });
-
-            modelBuilder.Entity("PokerBoom.Server.Entities.Player", b =>
-                {
-                    b.HasOne("PokerBoom.Server.Entities.Game", "Game")
-                        .WithMany("Players")
-                        .HasForeignKey("GameId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("PokerBoom.Server.Entities.ApplicationUser", "User")
-                        .WithMany("Players")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Game");
-
-                    b.Navigation("User");
-                });
-
-            modelBuilder.Entity("PokerBoom.Server.Entities.Board", b =>
-                {
-                    b.Navigation("Game")
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("PokerBoom.Server.Entities.Game", b =>
-                {
-                    b.Navigation("Bets");
-
-                    b.Navigation("Players");
-                });
-
-            modelBuilder.Entity("PokerBoom.Server.Entities.Player", b =>
-                {
-                    b.Navigation("Bets");
-                });
-
-            modelBuilder.Entity("PokerBoom.Server.Entities.Table", b =>
-                {
-                    b.Navigation("Games");
-                });
-
-            modelBuilder.Entity("PokerBoom.Server.Entities.ApplicationUser", b =>
-                {
-                    b.Navigation("Players");
                 });
 #pragma warning restore 612, 618
         }

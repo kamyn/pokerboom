@@ -1,0 +1,50 @@
+﻿@inherits GameListBase
+@page "/gameslist"
+@using PokerBoom.Shared.Models;
+
+<style>
+    .selected {
+        background-color: #1E88E5 !important;
+    }
+
+    .selected > td {
+        color: white !important;
+    }
+
+    .selected > td .mud-input {
+        color: white !important;
+    }
+    
+</style>
+
+@*<AuthorizeView Roles="Administrator">*@
+    <MudGrid Spacing="4" Class="pa-6 overflow-hidden">
+    <MudItem xs="10">
+        <MudTable Items="@Games" Dense="true" Filter="new Func<GameReview,bool>(FilterFunc1)" @bind-SelectedItem="selectedGame"
+                      @ref="mudTable" RowClassFunc="@SelectedRowClassFunc" T="GameReview">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Игровые столы</MudText>
+                <MudSpacer />
+                <MudTextField @bind-Value="searchGameString" Placeholder="Поиск" Adornment="Adornment.Start" Class="mt-0"></MudTextField>
+            </ToolBarContent>
+            <HeaderContent>
+                    <MudTh><MudTableSortLabel SortBy="new Func<GameReview, object>(x=>x.TableName)">Название</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<GameReview, object>(x=>x.Players)">Игроки</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<GameReview, object>(x=>x.SmallBlind)">Ставки</MudTableSortLabel></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Название">@context.TableName</MudTd>
+                <MudTd DataLabel="Игроки">@context.Players/6</MudTd>
+                <MudTd DataLabel="Ставки">@context.SmallBlind/@context.SmallBlind</MudTd>
+                </RowTemplate>
+            <PagerContent>
+                 <MudTablePager HorizontalAlignment="HorizontalAlignment.End" HideRowsPerPage="true" />
+            </PagerContent>
+        </MudTable>
+    </MudItem>
+</MudGrid>
+@*</AuthorizeView>*@
+
+@code {
+
+}

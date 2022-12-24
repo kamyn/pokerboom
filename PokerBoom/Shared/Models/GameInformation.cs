@@ -8,23 +8,16 @@ namespace PokerBoom.Shared.Models
 {
     public class GameInformation
     {
-        public List<Player> Players { get; set; }
-        public List<Card> TableCards { get; set; }
-        public List<Card> Hand { get; set; }
-        public bool GameInProgress { get; set; }
+        public List<GamePlayer> Players { get; set; }
+        public List<int> TableCards { get; set; }
         public string CurrentPlayer { get; set; }
-        public int SmallBlindIndex { get; set; }
-        public int BigBlindIndex { get; set; }
-        public string Winner { get; set; }
-        public int RaiseAmount { get; set; }
-        public int PlayerRaise { get; set; }
+        public int RoundRaiseAmount { get; set; }
+        public int Pot { get; set; }
+        public List<string> Winners { get; set; }
         public GameInformation()
         {
-            TableCards = new List<Card>();
-            Hand = new List<Card>();
-            GameInProgress = false;
-            RaiseAmount = 0;
-            PlayerRaise = 0;
+            TableCards = new List<int>();
+            Winners = new List<string>();
         }
     }
 }

@@ -1,31 +1,97 @@
 ﻿@inherits GameBase
 @page "/game"
 
+@if (GameInformation != null && HandCards != null)
+{
 <MudGrid Class="pa-4 ma-auto d-block">
     <MudItem Class="d-block" Style="height: 60%;">
         <div style="position: absolute; margin-top: 70px; width: 100%; height: 60%;">
-            <svg width="930" height="470" style="position:absolute; margin-left: 300px;"> 
+            <svg width="930" height="470" style="position:absolute; margin-left: 300px;">
                 <ellipse cx="465" cy="235" rx="450" ry="220"
-                      style="fill:#2B5741;stroke:#321909;stroke-width:30" />
+                         style="fill:#2B5741;stroke:#321909;stroke-width:30" />
             </svg>
-            <img style="position:absolute; margin-top: 185px; margin-left: 540px" width="75" height="100" src="/img/cards/1.png" hidden="hidden">
-            <img style="position:absolute; margin-top: 185px; margin-left: 635px" width="75" height="100" src="/img/cards/1.png">
-            <img style="position:absolute; margin-top: 185px; margin-left: 730px" width="75" height="100" src="/img/cards/1.png">
-            <img style="position:absolute; margin-top: 185px; margin-left: 825px" width="75" height="100" src="/img/cards/1.png">
-            <img style="position:absolute; margin-top: 185px; margin-left: 920px" width="75" height="100" src="/img/cards/1.png">
+            @if (GameInformation.Winners.Count > 0)
+            {
+                 <MudPaper Style="position:absolute; top: 100px; left: 700px;">
+                        <MudText Typo="Typo.button">Выигрыш: @GameInformation.Pot</MudText><br />
+                        <MudText Typo="Typo.button">Победители</MudText><br/>
+                        @foreach (var winner in GameInformation.Winners)
+                        {
+                            <MudText Typo="Typo.button">@winner</MudText><br />
+                        }
+                 </MudPaper>
+            }
+            @for (int i = 0; i < GameInformation.TableCards.Count; ++i)
+            {
+                <img style="@string.Concat("position:absolute; margin-top: 185px; margin-left:", (540 + 95*i).ToString(), "px")" width="75" height="100"
+                 src="/img/cards/@string.Concat(GameInformation.TableCards[i].ToString(), ".png")">
+            }
         </div>
     </MudItem>
-    <MudItem Class="d-block" Style="position:absolute; bottom:2%; right:0%;">
-        <MudPaper >
-            <MudButton Variant="Variant.Outlined" Color="Color.Primary">Чек</MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary">Колл</MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary">Рейз</MudButton>
-            <MudSlider @bind-Value="value1" Min="20" Max="100" Color="Color.Info" Size="Size.Medium">Ставка: @value1.ToString()</MudSlider>
-        </MudPaper>
+    <MudItem>
+        <div style="position: absolute; top: 500px; left: 400px;">
+            @if (GameInformation.Players.FirstOrDefault(p => p.SeatNumber == 1) != null)
+            {
+                <PlayerInfo GameInformation="GameInformation" GamePlayer="GameInformation.Players.FirstOrDefault(p => p.SeatNumber == 1)" 
+                    AuthState="AuthState" HandCards="HandCards"></PlayerInfo>
+            }
+        </div>
+        <div style="position: absolute; top: 170px; left: 430px;">
+            @if (GameInformation.Players.FirstOrDefault(p => p.SeatNumber == 2) != null)
+            {
+                <PlayerInfo GameInformation="GameInformation" GamePlayer="GameInformation.Players.FirstOrDefault(p => p.SeatNumber == 2)"
+                        AuthState="AuthState" HandCards="HandCards"></PlayerInfo>
+            }
+        </div>
+        <div style="position: absolute; top: 100px; left: 780px;">
+            @if (GameInformation.Players.FirstOrDefault(p => p.SeatNumber == 3) != null)
+            {
+                <PlayerInfo GameInformation="GameInformation" GamePlayer="GameInformation.Players.FirstOrDefault(p => p.SeatNumber == 3)"
+                        AuthState="AuthState" HandCards="HandCards"></PlayerInfo>
+            }
+        </div>
+        <div style="position: absolute; top: 250px; left: 1200px;">
+            @if (GameInformation.Players.FirstOrDefault(p => p.SeatNumber == 4) != null)
+            {
+                <PlayerInfo GameInformation="GameInformation" GamePlayer="GameInformation.Players.FirstOrDefault(p => p.SeatNumber == 4)"
+                        AuthState="AuthState" HandCards="HandCards"></PlayerInfo>
+            }
+        </div>
+        <div style="position: absolute; top: 530px; left: 1100px;">
+            @if (GameInformation.Players.FirstOrDefault(p => p.SeatNumber == 5) != null)
+            {
+                <PlayerInfo GameInformation="GameInformation" GamePlayer="GameInformation.Players.FirstOrDefault(p => p.SeatNumber == 5)"
+                        AuthState="AuthState" HandCards="HandCards"></PlayerInfo>
+            }
+        </div>
+        <div style="position: absolute; top: 570px; left: 780px;">
+            @if (GameInformation.Players.FirstOrDefault(p => p.SeatNumber == 6) != null)
+            {
+                <PlayerInfo GameInformation="GameInformation" GamePlayer="GameInformation.Players.FirstOrDefault(p => p.SeatNumber == 6)"
+                        AuthState="AuthState" HandCards="HandCards"></PlayerInfo>
+            }
+        </div>
     </MudItem>
-
 </MudGrid>
 
+<MudPaper Style="position:absolute; bottom:2%; right:0%;">
+    @{
+        bool isTurnPlayer = true;
+        if (AuthState != null && AuthState.User.Identity.Name == GameInformation.CurrentPlayer)
+            isTurnPlayer = false;
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="Check" Disabled="isTurnPlayer">Чек</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Call" Disabled="isTurnPlayer">Колл</MudButton>
+        <MudButton Variant="Variant.Filled" Style="background-color: yellowgreen;" OnClick="Raise" Disabled="isTurnPlayer">Рейз</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Tertiary" OnClick="AllIn" Disabled="isTurnPlayer">Олл-ин</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Fold" Disabled="isTurnPlayer">Фолд</MudButton>
+        <MudSlider @bind-Value="RaiseBet" Min="@GameInformation.RoundRaiseAmount" Max="@GameInformation.Players.Where(p => p.IsPlaying).Min(p => p.Stack)" 
+                   Color="Color.Info" Class="ml-3 mr-3" Size="Size.Medium" Disabled="isTurnPlayer">Ставка: @RaiseBet.ToString()</MudSlider>
+    }
+
+</MudPaper>
+}
+
+
+
 @code {
-    protected double value1 { get; set; }
 }

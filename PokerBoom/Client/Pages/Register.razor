@@ -1,13 +1,31 @@
-﻿@page "/register"
+﻿@inherits RegisterBase
+@page "/register"
 
-<h3>Регистрация</h3>
-<input size="50" /> <br>
-<input size="50" /> <br>
-<input size="50" /> <br>
-<button  >Зарегистрироваться</button><br>
-<NavLink href="login">
-    или войти
-</NavLink>
+<AuthorizeView>
+    <Authorized>
+        @{ _navigationManager.NavigateTo("/"); }
+    </Authorized>
+    <NotAuthorized>
+        <MudGrid Class="absolute justify-center align-content-center align-self-center" Style="top: 30%;">
+            <EditForm Model="@User" OnSubmit="@Register" Context="someContext">
+                <DataAnnotationsValidator />
+                <MudItem>
+                    <MudCard>
+                        <MudCardContent>
+                            <MudTextField Label="Логин" @bind-Value="User.Login" For="@(() => User.Login)" />
+                            <MudTextField Label="Пароль" Class="mt-3" @bind-Value="User.Password" For="@(() => User.Password)" InputType="InputType.Password" />
+                            <MudTextField Label="Подтвердите пароль" Class="mt-3" @bind-Value="User.PasswordConfirmed" For="@(() => User.PasswordConfirmed)" 
+                                InputType="InputType.Password" />
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mr-3">Зарегистрироваться</MudButton>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </EditForm>
+        </MudGrid>
+    </NotAuthorized>
+</AuthorizeView>
 
 @code {
 

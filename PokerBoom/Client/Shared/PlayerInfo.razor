@@ -1,0 +1,49 @@
+﻿@using PokerBoom.Shared.Models;
+
+@if (HandCards != null && AuthState != null && AuthState.User.Identity.Name == GamePlayer.Username && GamePlayer.IsPlaying)
+{
+    <MudPaper>
+        <div style="position:relative">
+            <img style="position:absolute" width="70" height="100" src="/img/cards/@string.Concat(HandCards[0],".png")">
+            <img style="position:absolute; left: 80px;" width="70" height="100" src="/img/cards/@string.Concat(HandCards[1],".png")">
+        </div>
+    </MudPaper>
+}
+else
+{
+    if (GameInformation.CurrentPlayer == GamePlayer.Username)
+    {
+        <MudPaper>
+            <MudText Typo="Typo.button" Style="background-color: black; color:white;">@GamePlayer.Username</MudText>
+            <div style="position:relative">
+                <img style="position:absolute" width="50" height="70" src="/img/cards/reverse.png">
+                <img style="position:absolute; top:15px; left:15px;" width="50" height="70" src="/img/cards/reverse.png">
+            </div>
+        </MudPaper>
+    }
+    else
+    {
+        <MudPaper>
+            <MudText Typo="Typo.button">@GamePlayer.Username</MudText>
+            @if (GamePlayer.IsPlaying)
+            {
+                <MudText Typo="Typo.button" Style="background-color: black; color: white;">@GamePlayer.Bet</MudText>
+                <div style="position:relative">
+                    <img style="position:absolute" width="50" height="70" src="/img/cards/reverse.png">
+                    <img style="position:absolute; top:15px; left:15px;" width="50" height="70" src="/img/cards/reverse.png">
+                </div>
+            }
+        </MudPaper>
+    }
+}
+
+@code {
+    [Parameter] 
+    public GameInformation GameInformation { get; set; }
+    [Parameter] 
+    public GamePlayer GamePlayer { get; set; }
+    [Parameter] 
+    public AuthenticationState AuthState { get; set; }
+    [Parameter]
+    public List<int>? HandCards { get; set; } = null;
+}

@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace PokerBoom.Shared.Models
 {
-    public class GetTablesResult
+    public class GetGamesResultViewModel
     {
         public bool Successful { get; set; }
-        public IEnumerable<PokerTable> PokerTables { get; set; }
+        public IEnumerable<GameReview> Games { get; set; }
         public string Error { get; set; }
     }
 }

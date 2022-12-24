@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Identity;
 using PokerBoom.Server;
 using Microsoft.AspNetCore.Authentication;
 using System.Net;
+using PokerBoom.Server.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -77,6 +78,7 @@ builder.Services.AddAuthorization(options =>
     });
 });
 
+builder.Services.AddScoped<ITableRepository, TableRepository>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
@@ -109,7 +111,7 @@ app.UseAuthorization();
 
 app.MapRazorPages();
 app.MapControllers();
-app.MapHub<SendAllHub>("/sendallhub");
+app.MapHub<GameHub>("/gamehub");
 app.MapFallbackToFile("index.html");
 
 
