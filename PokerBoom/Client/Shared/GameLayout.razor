@@ -1,0 +1,43 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager navigation
+@inject BalanceState _balanceState
+@using PokerBoom.Client.States
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<AuthorizeView>
+    <Authorized>
+        <MudAppBar Color="Color.Primary" Fixed="false">
+            <MudText Typo="Typo.h6">POKERBOOM</MudText>
+            <MudLink Href="/gameslist"></MudLink>
+            <MudSpacer />
+            <MudText Typo="Typo.button">@context.User.Identity.Name</MudText>
+            <MudText Typo="Typo.button" Class="ml-4">Баланс: @Balance</MudText>
+@*            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="ml-4" OnClick="ToTableList">Выйти</MudButton>*@
+        </MudAppBar>
+    </Authorized>
+</AuthorizeView>
+
+@Body
+
+@code {
+    protected int Balance { get; set; }
+
+    protected void OnBalanceChanged(int balance)
+    {
+        Balance = balance;
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _balanceState.OnBalanceChanged += OnBalanceChanged;
+    }
+
+    protected async Task ToTableList()
+    {
+        navigation.NavigateTo("/");
+    }
+}

@@ -79,6 +79,7 @@ builder.Services.AddAuthorization(options =>
 });
 
 builder.Services.AddScoped<ITableRepository, TableRepository>();
+builder.Services.AddScoped<IGameRepository, GameRepository>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
@@ -112,6 +113,7 @@ app.UseAuthorization();
 app.MapRazorPages();
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
+app.MapHub<GameReviewHub>("/gamereviewhub");
 app.MapFallbackToFile("index.html");
 
 

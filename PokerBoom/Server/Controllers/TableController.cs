@@ -3,33 +3,34 @@ using Microsoft.AspNetCore.Mvc;
 using PokerBoom.Server.Data;
 using PokerBoom.Shared.Models;
 using PokerBoom.Server.Repositories;
+using System.Runtime.CompilerServices;
 
 namespace PokerBoom.Server.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class TableController : ControllerBase
     {
         private readonly AppDbContext _db;
-        public TableController(AppDbContext db)
+        private readonly ITableRepository _tableRepository;
+        public TableController(AppDbContext db, ITableRepository tableRepository)
         {
             _db = db;
+            _tableRepository = tableRepository;
         }
 
         [HttpGet]
         public async Task<ActionResult<GetTablesResult>> GetTables()
         {
-            var tables = new List<PokerTable>();
-            foreach (var table in _db.Tables)
-                tables.Add(new PokerTable { Id = table.Id, Name = table.Name, SmallBlind = table.SmallBlind });
+            var tables = await _tableRepository.GetTables();
             return Ok(new GetTablesResult { Successful = true, PokerTables = tables });
         }
 
         [HttpGet("{id:int}")]
         public async Task<ActionResult<PokerTable>> GetTableById(int id)
         {
-            return Ok(); // new GetTablesResult { Successful = true, PokerTables = await TableRepository.GetTableById(id) }
+            var table = await _tableRepository.GetTableById(id);
+            return Ok(new GetTableResult { Successful = true, PokerTable = table});
         }
     }
 }

@@ -26,6 +26,11 @@
         var result = await response.Content.ReadFromJsonAsync<LoginResultViewModel>();
         if (result.Success)
         {
+            if (string.IsNullOrEmpty(result.Token))
+            {
+                _navigationManager.NavigateTo($"/vkregister?code={Code}");
+                return;
+            }
             await localStorage.SetItemAsync("authToken", result.Token);
             ((AppAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(result.Token);
             _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", result.Token);

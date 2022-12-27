@@ -28,6 +28,12 @@ namespace PokerBoom.Client.Pages
             StateHasChanged();
         }
 
+        protected async Task ViewGame()
+        {
+            await _localStorage.SetItemAsync("reviewGameId", selectedGame.Id);
+            _navigationManager.NavigateTo("/reviewgame");
+        }
+
         protected string SelectedRowClassFunc(GameReview element, int rowNumber)
         {
             if (selectedRowNumber == rowNumber)

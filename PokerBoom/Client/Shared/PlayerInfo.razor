@@ -11,28 +11,37 @@
 }
 else
 {
-    if (GameInformation.CurrentPlayer == GamePlayer.Username)
+    if (GamePlayer.IsPlaying)
     {
-        <MudPaper>
-            <MudText Typo="Typo.button" Style="background-color: black; color:white;">@GamePlayer.Username</MudText>
-            <div style="position:relative">
-                <img style="position:absolute" width="50" height="70" src="/img/cards/reverse.png">
-                <img style="position:absolute; top:15px; left:15px;" width="50" height="70" src="/img/cards/reverse.png">
-            </div>
-        </MudPaper>
-    }
-    else
-    {
-        <MudPaper>
-            <MudText Typo="Typo.button">@GamePlayer.Username</MudText>
-            @if (GamePlayer.IsPlaying)
-            {
-                <MudText Typo="Typo.button" Style="background-color: black; color: white;">@GamePlayer.Bet</MudText>
+        if (GameInformation.CurrentPlayer == GamePlayer.Username)
+        {
+            <MudPaper>
+                <MudText Typo="Typo.button" Style="background-color: black; color:white;">@GamePlayer.Username (@GamePlayer.Stack)</MudText>
                 <div style="position:relative">
                     <img style="position:absolute" width="50" height="70" src="/img/cards/reverse.png">
                     <img style="position:absolute; top:15px; left:15px;" width="50" height="70" src="/img/cards/reverse.png">
                 </div>
-            }
+            </MudPaper>
+        }
+        else
+        {
+            <MudPaper>
+                <MudText Typo="Typo.button">@GamePlayer.Username (@GamePlayer.Stack)</MudText>
+                @if (GamePlayer.IsPlaying)
+                {
+                    <MudText Typo="Typo.button" Style="background-color: black; color: white;">@GamePlayer.Bet</MudText>
+                    <div style="position:relative">
+                        <img style="position:absolute" width="50" height="70" src="/img/cards/reverse.png">
+                        <img style="position:absolute; top:15px; left:15px;" width="50" height="70" src="/img/cards/reverse.png">
+                    </div>
+                }
+            </MudPaper>
+        }
+    }
+    else
+    {
+        <MudPaper>
+            <MudText Typo="Typo.button" Style="background-color: white; color:black;">@GamePlayer.Username (@GamePlayer.Stack)</MudText>
         </MudPaper>
     }
 }

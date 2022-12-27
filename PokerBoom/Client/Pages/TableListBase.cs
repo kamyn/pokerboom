@@ -3,29 +3,42 @@ using MudBlazor;
 using Blazored.LocalStorage;
 using PokerBoom.Shared.Models;
 using System.Net.Http.Json;
+using PokerBoom.Client.States;
+using Microsoft.AspNetCore.Components.Authorization;
 
 namespace PokerBoom.Client.Pages
 {
     public class TableListBase : ComponentBase
     {
-        [Inject] protected ILocalStorageService _localStorage { get; set; }
-        [Inject] protected NavigationManager _navigationManager { get; set; }
-        [Inject] protected HttpClient _httpClient { get; set; }
+        [Inject] protected ILocalStorageService? _localStorage { get; set; }
+        [Inject] protected NavigationManager? _navigationManager { get; set; }
+        [Inject] protected HttpClient? _httpClient { get; set; }
+        [Inject] protected BalanceState _balanceState { get; set; }
+        [Inject] public AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+        public AuthenticationState AuthState { get; set; }
         protected int selectedRowNumber = -1;
-        protected MudTable<PokerTable> mudTable { get; set; }
-        protected string StackAmount { get; set; }
-        protected PokerTable Table { get;set; }
-        protected string searchTableString { get; set; }
-        protected PokerTable selectedTable { get; set; }
-        protected IEnumerable<PokerTable> Tables { get; set; }
+        protected MudTable<PokerTable>? mudTable { get; set; }
+        protected int? StackAmount { get; set; }
+        protected PokerTable? Table { get;set; }
+        protected string? searchTableString { get; set; }
+        protected PokerTable? selectedTable { get; set; }
+        protected IEnumerable<PokerTable>? Tables { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
+            AuthState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
             var result = await _httpClient.GetFromJsonAsync<GetTablesResult>("/api/table");
             if (result.Successful)
             {
                 Tables = result.PokerTables;
             }
+
+            var response = await _httpClient.GetAsync($"/api/balance?username={AuthState.User.Identity.Name}");
+            int balance = (await response.Content.ReadFromJsonAsync<GetBalanceViewModel>()).Balance;
+
+            _balanceState.OnBalanceChanged.Invoke(balance);
+
             StateHasChanged();
         }
 
@@ -60,8 +73,12 @@ namespace PokerBoom.Client.Pages
 
         protected async Task ConnectToTable()
         {
-            await _localStorage.SetItemAsync("currentTable", selectedTable.Id);
-            _navigationManager.NavigateTo("/game");
+            if (StackAmount != null && StackAmount > 0)
+            {
+                await _localStorage.SetItemAsync("currentTable", selectedTable.Id);
+                await _localStorage.SetItemAsync("stackAmount", StackAmount);
+                _navigationManager.NavigateTo("/game");
+            }
         }
     }
 }

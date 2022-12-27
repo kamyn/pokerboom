@@ -6,7 +6,6 @@
         public string Name { get; set; }
         public int TableId { get; set; }
         public bool InGame { get; set; }
-        public int Balance { get; set; }
         public int SeatNumber { get; set; }
         public int Stack { get; set; }
     }

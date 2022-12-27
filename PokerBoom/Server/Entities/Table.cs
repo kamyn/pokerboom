@@ -5,7 +5,7 @@
         public int Id { get; set; }
         public string Name { get; set; }
         public int SmallBlind { get; set; }
-
+        public int Players { get; set; }
         public List<Game> Games { get; set; }
     }
 }

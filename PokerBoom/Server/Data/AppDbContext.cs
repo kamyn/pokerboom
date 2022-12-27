@@ -16,6 +16,8 @@ namespace PokerBoom.Server.Data
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
+            base.Database.EnsureCreated();
+
             ChangeTracker.LazyLoadingEnabled = false;
         }
 
@@ -31,7 +33,7 @@ namespace PokerBoom.Server.Data
             builder.Entity<Player>().HasOne<ApplicationUser>(p => p.User).WithMany(u => u.Players);
             builder.Entity<Player>().HasMany<Bet>(p => p.Bets).WithOne(u => u.Player);
 
-            builder.Entity<Table>().HasData(new Table { Id = 1, Name = "стол #1", SmallBlind = 10 });
+            builder.Entity<Table>().HasData(new Table { Id = 1, Name = "стол #1", SmallBlind = 10, Players = 0 });
 
             builder.Entity<IdentityRole>().HasData(new IdentityRole { Name = "User", 
                                                                       NormalizedName = "USER", 

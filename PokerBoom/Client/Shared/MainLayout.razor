@@ -2,32 +2,37 @@
 @inject AuthenticationStateProvider authProvider
 @inject ILocalStorageService localStorage
 @inject NavigationManager navigation
+@inject HttpClient _httpClient
+@inject BalanceState _balanceState
+@using PokerBoom.Shared.Models
+@using PokerBoom.Client.States
 
 <MudThemeProvider/>
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
-<AuthorizeView Roles="Administrator">
+@*<AuthorizeView Roles="Administrator">
     <Authorized>
         <MudAppBar Color="Color.Primary" Fixed="false">
             <MudText Typo="Typo.h6">POKERBOOM</MudText>
-            <MudButton Class="ml-3" Variant="Variant.Outlined" OnClick="ToTableList" Style="color: white">Игровые столы</MudButton>
-            <MudButton Class="ml-3" Variant="Variant.Outlined" OnClick="ToReviewGames" Style="color: white">Просмотр игр</MudButton>
-             <MudLink Href="/gameslist"></MudLink>
+            <MudButton Class="ml-3" Variant="Variant.Filled" Color="Color.Primary" OnClick="ToTableList">Игровые столы</MudButton>
+            <MudButton Class="ml-3" Variant="Variant.Filled" Color="Color.Primary">Просмотр игр</MudButton>
             <MudSpacer />
-            <MudText Typo="Typo.button">Баланс: 1300.52</MudText>
-            <MudButton Class="ml-3" Variant="Variant.Outlined" OnClick="Logout">Выйти</MudButton> 
+            <MudText Typo="Typo.button">@context.User.Identity.Name</MudText>
+            <MudText Typo="Typo.button" Class="ml-4">Баланс: 1000</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="ml-4" OnClick="Logout">Выйти</MudButton>
         </MudAppBar>
     </Authorized>
-</AuthorizeView>
+</AuthorizeView>*@
 
-<AuthorizeView Roles="User">
+<AuthorizeView>
     <Authorized>
         <MudAppBar Color="Color.Primary" Fixed="false">
             <MudText Typo="Typo.h6">POKERBOOM</MudText>
             <MudSpacer />
-            <MudText Typo="Typo.button">Баланс: 1300.52</MudText>
-            <MudButton Class="ml-3" Variant="Variant.Outlined" OnClick="Logout">Выйти</MudButton> 
+            <MudText Typo="Typo.button">@context.User.Identity.Name</MudText>
+            <MudText Typo="Typo.button" Class="ml-4">Баланс: @Balance</MudText>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="ml-4" OnClick="Logout">Выйти</MudButton>
         </MudAppBar>
     </Authorized>
 </AuthorizeView>
@@ -35,6 +40,19 @@
 @Body
 
 @code {
+    protected int Balance { get; set; }
+
+    protected void OnBalanceChanged(int balance)
+    {
+        Balance = balance;
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        _balanceState.OnBalanceChanged += OnBalanceChanged;
+    }
+
     protected async Task Logout()
     {
         await localStorage.RemoveItemAsync("authToken");

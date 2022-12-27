@@ -16,24 +16,25 @@
     }
     
 </style>
-
 @*<AuthorizeView Roles="Administrator">*@
-    <MudGrid Spacing="4" Class="pa-6 overflow-hidden">
+<MudGrid Spacing="4" Class="pa-6 overflow-hidden">
     <MudItem xs="10">
         <MudTable Items="@Games" Dense="true" Filter="new Func<GameReview,bool>(FilterFunc1)" @bind-SelectedItem="selectedGame"
                       @ref="mudTable" RowClassFunc="@SelectedRowClassFunc" T="GameReview">
             <ToolBarContent>
-                <MudText Typo="Typo.h6">Игровые столы</MudText>
+                <MudText Typo="Typo.h6">Игры</MudText>
                 <MudSpacer />
                 <MudTextField @bind-Value="searchGameString" Placeholder="Поиск" Adornment="Adornment.Start" Class="mt-0"></MudTextField>
             </ToolBarContent>
             <HeaderContent>
-                    <MudTh><MudTableSortLabel SortBy="new Func<GameReview, object>(x=>x.TableName)">Название</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<GameReview, object>(x=>x.Id)">Id</MudTableSortLabel></MudTh>
+                    <MudTh><MudTableSortLabel SortBy="new Func<GameReview, object>(x=>x.TableName)">Стол</MudTableSortLabel></MudTh>
                     <MudTh><MudTableSortLabel SortBy="new Func<GameReview, object>(x=>x.Players)">Игроки</MudTableSortLabel></MudTh>
                     <MudTh><MudTableSortLabel SortBy="new Func<GameReview, object>(x=>x.SmallBlind)">Ставки</MudTableSortLabel></MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd DataLabel="Название">@context.TableName</MudTd>
+                <MudTd DataLabel="Id">@context.Id</MudTd>
+                <MudTd DataLabel="Стол">@context.TableName</MudTd>
                 <MudTd DataLabel="Игроки">@context.Players/6</MudTd>
                 <MudTd DataLabel="Ставки">@context.SmallBlind/@context.SmallBlind</MudTd>
                 </RowTemplate>
@@ -41,6 +42,11 @@
                  <MudTablePager HorizontalAlignment="HorizontalAlignment.End" HideRowsPerPage="true" />
             </PagerContent>
         </MudTable>
+    </MudItem>
+    <MudItem xs="2">
+        <MudGrid Class="d-block mt-1">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="ViewGame">Присоединиться</MudButton>
+        </MudGrid>
     </MudItem>
 </MudGrid>
 @*</AuthorizeView>*@

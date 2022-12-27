@@ -1,25 +1,53 @@
-﻿using PokerBoom.Shared.Models;
+﻿using PokerBoom.Server.Data;
+using PokerBoom.Shared.Models;
 
 namespace PokerBoom.Server.Repositories
 {
     public class TableRepository : ITableRepository
     {
-        private List<PokerTable> _tables = new List<PokerTable>
+        private readonly AppDbContext _db;
+        public TableRepository(AppDbContext db) 
         {
-            new PokerTable { Id = 1, Name = "стол 1", Players = 3, SmallBlind = 10 },
-            new PokerTable { Id = 2, Name = "стол 2", Players = 2, SmallBlind = 50 },
-            new PokerTable { Id = 3, Name = "стол 3", Players = 5, SmallBlind = 20 },
-            new PokerTable { Id = 4, Name = "стол 4", Players = 0, SmallBlind = 200 }
-        };
-
+            _db = db;
+        }
+        
         public async Task<IEnumerable<PokerTable>> GetTables()
         {
-            return _tables;
+            var tables = new List<PokerTable>();
+            foreach (var table in _db.Tables)
+            {
+                tables.Add(new PokerTable
+                {
+                    Id = table.Id,
+                    Name = table.Name,
+                    SmallBlind = table.SmallBlind,
+                    Players = table.Players
+                });
+            }
+            return tables;
         }
 
         public async Task<PokerTable> GetTableById(int tableId)
         {
-            return _tables.FirstOrDefault(e => e.Id == tableId);
+            var table = _db.Tables.FirstOrDefault(t => t.Id == tableId);
+            if (table == null)
+                return new PokerTable { Id = -1, };
+            return new PokerTable { 
+                Id = table.Id,
+                Name= table.Name,
+                SmallBlind = table.SmallBlind,
+                Players = table.Players
+            };
+        }
+
+        public async Task SetPlayers(int tableId, int players)
+        {
+            var table = _db.Tables.First(t => t.Id == tableId);
+            if (table != null)
+            {
+                table.Players = players;
+                _db.SaveChanges();
+            }
         }
     }
 }

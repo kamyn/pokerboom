@@ -1,0 +1,70 @@
+﻿@page "/vkregister"
+@using PokerBoom.Shared.Models;
+@using System.Net.Http.Headers;
+
+<AuthorizeView>
+    <Authorized>
+        @{ _navigationManager.NavigateTo("/"); }
+    </Authorized>
+    <NotAuthorized>
+        <MudGrid Class="absolute justify-center align-content-center align-self-center" Style="top: 30%;">
+            <EditForm Model="@Form" OnSubmit="@Register" Context="someContext">
+                <DataAnnotationsValidator />
+                <MudItem>
+                    <MudCard>
+                        <MudCardContent>
+                            <MudTextField Label="Логин" @bind-Value="Form.Login" For="@(() => Form.Login)" />
+                        </MudCardContent>
+                        <MudCardActions>
+                            <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="mr-3">Зарегистрироваться</MudButton>
+                            <MudText Color="Color.Error">@Error</MudText>
+                        </MudCardActions>
+                    </MudCard>
+                </MudItem>
+            </EditForm>
+        </MudGrid>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery(Name = "code")]
+    public string Code { get; set; }
+
+    [Inject]
+    protected HttpClient _httpClient { get; set; }
+
+    [Inject]
+    private Blazored.LocalStorage.ILocalStorageService _localStorage { get; set; }
+
+    [Inject]
+    private AuthenticationStateProvider _authenticationStateProvider { get; set; }
+
+    [Inject]
+    private NavigationManager _navigationManager { get; set; }
+    public class VkRegisterForm
+    {
+        public string Login { get; set; }
+    }
+    public VkRegisterForm Form { get; set; } = new VkRegisterForm();
+
+    public string? Error { get; set; }
+
+    protected async Task Register()
+    {
+        var response = await _httpClient.GetAsync($"/api/vkregister?code={Code}&username={Form.Login}");
+        var result = await response.Content.ReadFromJsonAsync<LoginResultViewModel>();
+
+        if (result.Success)
+        {
+            await _localStorage.SetItemAsync("authToken", result.Token);
+            ((AppAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(result.Token);
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", result.Token);
+            _navigationManager.NavigateTo("/");
+        }
+        else
+        {
+            Error = result.Error;
+        }
+    }
+}

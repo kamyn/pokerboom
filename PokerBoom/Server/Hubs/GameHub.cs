@@ -26,10 +26,22 @@ namespace PokerBoom.Server.Hubs
             _tableRepository = tableRepository;
             _db = db;
         }
-
+       
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            
+            var userInfo = await _userManager.FindByNameAsync(Context.User.Identity.Name);
+            var user = Users.First(u => u.Name == Context.User.Identity.Name);
+            if (user != null)
+            {
+                var game = Games.First(g => g.TableId == user.TableId);   
+                if (game != null)
+                {
+                    game.Players.FirstOrDefault(p => p.Name == user.Name).IsPlaying = false;
+                    game.Players.Remove(game.Players.First(p => p.Name == user.Name));
+                    userInfo.Currency += user.Stack;
+                    await _tableRepository.SetPlayers(user.TableId, game.Players.Count());
+                }
+            }
         }
 
         private async Task StartNewGame(int tableId, int smallBlind, int smallBlindIndex)
@@ -43,7 +55,7 @@ namespace PokerBoom.Server.Hubs
                     Name = users[i].Name,
                     HandCards = game.Deck.NextCards(2),
                     SeatNumber = users[i].SeatNumber,
-                    Stack = users[i].Stack,
+                    Stack = users[i].Stack - (users[i].SeatNumber == smallBlindIndex ? smallBlind : 0),
                     IsPlaying = true,
                     RoundBet = users[i].SeatNumber == smallBlindIndex ? smallBlind : 0,
                     HasMadeMove = users[i].SeatNumber == smallBlindIndex,
@@ -53,6 +65,7 @@ namespace PokerBoom.Server.Hubs
             game.BetRound = Round.PreFlop;
             game.Pot = smallBlind;
             game.CurrentPlayer = game.Players.OrderBy(p => p.SeatNumber).ToList()[1].Name;
+            game.RoundRaiseAmount = smallBlind;
 
             for (int i = 0; i < users.Count; ++i)
                 await Clients.Client(users[i].ConnectionId).SendAsync("ReceiveHandCards", JsonSerializer.Serialize(game.Players[i].HandCards));
@@ -60,44 +73,44 @@ namespace PokerBoom.Server.Hubs
             Games.Add(game);
             await SendGameInformation(tableId);
 
-            game.Id = _db.Games.Count() == 0 ? 1 : _db.Games.OrderBy(g => g.Id).Last().Id + 1;
-            try
-            {
-                _db.Games.Add(new Entities.Game
-                {
-                    Id = game.Id,
-                    TableId = 1, // todo
-                    Players = new List<Entities.Player>(),
-                    Board = new Entities.Board(),
-                    Bets = new List<Entities.Bet>()
-                });
+            //game.Id = _db.Games.Count() == 0 ? 1 : _db.Games.OrderBy(g => g.Id).Last().Id + 1;
+            //try
+            //{
+            //    _db.Games.Add(new Entities.Game
+            //    {
+            //        Id = game.Id,
+            //        TableId = 1, // todo
+            //        Players = new List<Entities.Player>(),
+            //        Board = new Entities.Board(),
+            //        Bets = new List<Entities.Bet>()
+            //    });
 
-                for (int i = 0; i < users.Count; ++i)
-                {
-                    _db.Players.Add(new Entities.Player
-                    {
-                        FirstCard = game.Players[i].HandCards[0],
-                        SecondCard = game.Players[i].HandCards[1],
-                        SeatPlace = game.Players[i].SeatNumber,
-                        Stack = game.Players[i].Stack,
-                        UserId = _db.Users.First(u => u.UserName == users[i].Name).Id,
-                        GameId = game.Id
-                    });
-                }
-                _db.SaveChanges();
-                _db.Bets.Add(new Entities.Bet
-                {
-                    BetAmount = smallBlind,
-                    Player = _db.Players.First(p => p.SeatPlace == smallBlindIndex && p.GameId == game.Id),
-                    Round = 0,
-                    Game = _db.Games.First(g => g.Id == game.Id)
-                });
-            }
-            catch (Exception ex)
-            {
+            //    for (int i = 0; i < users.Count; ++i)
+            //    {
+            //        _db.Players.Add(new Entities.Player
+            //        {
+            //            FirstCard = game.Players[i].HandCards[0],
+            //            SecondCard = game.Players[i].HandCards[1],
+            //            SeatPlace = game.Players[i].SeatNumber,
+            //            Stack = game.Players[i].Stack,
+            //            UserId = _db.Users.First(u => u.UserName == users[i].Name).Id,
+            //            GameId = game.Id
+            //        });
+            //    }
+            //    _db.SaveChanges();
+            //    _db.Bets.Add(new Entities.Bet
+            //    {
+            //        BetAmount = smallBlind,
+            //        Player = _db.Players.First(p => p.SeatPlace == smallBlindIndex && p.GameId == game.Id),
+            //        Round = 0,
+            //        Game = _db.Games.First(g => g.Id == game.Id)
+            //    });
+            //}
+            //catch (Exception ex)
+            //{
 
-            }
-            _db.SaveChanges();
+            //}
+            //_db.SaveChanges();
         }
 
         private async Task SendGameInformation(int tableId)
@@ -127,8 +140,6 @@ namespace PokerBoom.Server.Hubs
                     RoundRaiseAmount = game.RoundRaiseAmount,
                     Pot = game.Pot
                 }));
-
-                // write to db
             }
             else
             {
@@ -204,29 +215,34 @@ namespace PokerBoom.Server.Hubs
             int stack = playerInfo.Value;
             var table = await _tableRepository.GetTableById(tableId);
 
-            // если достаточно мест за столом, проверка баланса
-            var users = Users.Where(u => u.TableId == tableId).ToList();
-            int players = users.Count;
-            if (players < 6 && Users.Where(u => u.Name == Context.User.Identity.Name).Count() == 0)
+            var userInfo = await _userManager.FindByNameAsync(Context.User.Identity.Name);
+            if (stack < userInfo.Currency)
             {
-                var user = new User
+                var users = Users.Where(u => u.TableId == tableId).ToList();
+                int players = users.Count;
+                if (players < 6 && Users.Where(u => u.Name == Context.User.Identity.Name).Count() == 0)
                 {
-                    Balance = stack, // TODO брать из userManager
-                    ConnectionId = Context.ConnectionId,
-                    InGame = true,
-                    Name = Context.User.Identity.Name,
-                    TableId = tableId,
-                    SeatNumber = await GetFreeSeat(tableId)
-                };
+                    userInfo.Currency -= stack;
+                    var user = new User
+                    {
+                        ConnectionId = Context.ConnectionId,
+                        InGame = true,
+                        Name = Context.User.Identity.Name,
+                        TableId = tableId,
+                        SeatNumber = await GetFreeSeat(tableId),
+                        Stack = stack
+                    };
 
-                Users.Add(user);
-                await Groups.AddToGroupAsync(Context.ConnectionId, tableId.ToString());
-                var game = Games.FirstOrDefault(g => g.TableId == tableId);
-                if (game == null && players > 0)
-                    await StartNewGame(tableId, table.SmallBlind, 1);
+                    Users.Add(user);
+                    await Groups.AddToGroupAsync(Context.ConnectionId, tableId.ToString());
+                    await _tableRepository.SetPlayers(tableId, players + 1);
+                    var game = Games.FirstOrDefault(g => g.TableId == tableId);
+                    if (game == null && players > 0)
+                        await StartNewGame(tableId, table.SmallBlind, 1);
+                }
+                else
+                    await Clients.Client(Context.ConnectionId).SendAsync("ReceiveKick");
             }
-            else 
-                await Clients.Client(Context.ConnectionId).SendAsync("ReceiveKick");
         }
 
         public async Task ActionCheck()
@@ -242,14 +258,14 @@ namespace PokerBoom.Server.Hubs
                     {
                         player.HasMadeMove = true;
 
-                        _db.Bets.Add(new Entities.Bet
-                        {
-                            BetAmount = 0,
-                            Game = _db.Games.First(g => g.Id == game.Id),
-                            Player = _db.Players.First(p => p.SeatPlace == player.SeatNumber && p.GameId == game.Id),
-                            Round = (int)game.BetRound,
-                        });
-                        _db.SaveChanges();
+                        //_db.Bets.Add(new Entities.Bet
+                        //{
+                        //    BetAmount = 0,
+                        //    Game = _db.Games.First(g => g.Id == game.Id),
+                        //    Player = _db.Players.First(p => p.SeatPlace == player.SeatNumber && p.GameId == game.Id),
+                        //    Round = (int)game.BetRound,
+                        //});
+                        //_db.SaveChanges();
                     }
 
                     if (game.Players.Where(p => p.IsPlaying).All(p => p.RoundBet == game.Players.Max(p => p.RoundBet)) &&
@@ -271,9 +287,13 @@ namespace PokerBoom.Server.Hubs
                         }
                         game.RoundRaiseAmount = 0;
                     }
-                    game.Players = game.Players.OrderBy(p => p.SeatNumber).ToList();
-                    int idxNextPlayer = (game.Players.FindIndex(p => p.Name == game.CurrentPlayer) + 1) % game.Players.Count();
-                    game.CurrentPlayer = game.Players[idxNextPlayer].Name;
+
+                    game.CurrentPlayer = game.Players.Where(p => p.IsPlaying).
+                        OrderBy(p => p.SeatNumber).
+                        First(p => p.SeatNumber +
+                                (game.Players.Where(p => p.IsPlaying).Max(p => p.SeatNumber) == user.SeatNumber ? 6 : 0)
+                        > user.SeatNumber).Name;
+
                     await SendGameInformation(user.TableId);
                 }
             }
@@ -301,14 +321,14 @@ namespace PokerBoom.Server.Hubs
                         player.HasMadeMove = true;
                         game.Pot += prevPlayer.RoundBet;
 
-                        _db.Bets.Add(new Entities.Bet
-                        {
-                            BetAmount = prevPlayer.RoundBet,
-                            Game = _db.Games.First(g => g.Id == game.Id),
-                            Player = _db.Players.First(p => p.SeatPlace == player.SeatNumber && p.GameId == game.Id),
-                            Round = (int)game.BetRound,
-                        });
-                        _db.SaveChanges();
+                        //_db.Bets.Add(new Entities.Bet
+                        //{
+                        //    BetAmount = prevPlayer.RoundBet,
+                        //    Game = _db.Games.First(g => g.Id == game.Id),
+                        //    Player = _db.Players.First(p => p.SeatPlace == player.SeatNumber && p.GameId == game.Id),
+                        //    Round = (int)game.BetRound,
+                        //});
+                        //_db.SaveChanges();
                     }
 
                     if (game.Players.Where(p => p.IsPlaying).All(p => p.RoundBet == game.Players.Max(p => p.RoundBet)) &&
@@ -331,8 +351,11 @@ namespace PokerBoom.Server.Hubs
                         game.RoundRaiseAmount = 0;
                     }
 
-                    int idxNextPlayer = (game.Players.FindIndex(p => p.Name == game.CurrentPlayer) + 1) % game.Players.Count();
-                    game.CurrentPlayer = game.Players[idxNextPlayer].Name;
+                    game.CurrentPlayer = game.Players.Where(p => p.IsPlaying).
+                        OrderBy(p => p.SeatNumber).
+                        First(p => p.SeatNumber +
+                                (game.Players.Where(p => p.IsPlaying).Max(p => p.SeatNumber) == user.SeatNumber ? 6 : 0)
+                        > user.SeatNumber).Name;    
                     await SendGameInformation(user.TableId);
                 }
             }
@@ -350,7 +373,7 @@ namespace PokerBoom.Server.Hubs
                     
                     if (amount <= game.Players.Where(p => p.IsPlaying).Min(p => p.Stack))
                     {
-                        game.RoundRaiseAmount= amount;
+                        game.RoundRaiseAmount = amount;
                         var player = game.Players.FirstOrDefault(p => p.Name == Context.User.Identity.Name);
                         if (player != null)
                         {
@@ -359,9 +382,21 @@ namespace PokerBoom.Server.Hubs
                             player.Stack -= amount;
                             player.HasMadeMove = true;
                         }
-                        //TODO учитывать неактивных игроков (isplaying = false)
-                        int idxNextPlayer = (game.Players.FindIndex(p => p.Name == game.CurrentPlayer) + 1) % game.Players.Count();
-                        game.CurrentPlayer = game.Players[idxNextPlayer].Name;
+                        //_db.Bets.Add(new Entities.Bet
+                        //{
+                        //    BetAmount = amount,
+                        //    Game = _db.Games.First(g => g.Id == game.Id),
+                        //    Player = _db.Players.First(p => p.SeatPlace == player.SeatNumber && p.GameId == game.Id),
+                        //    Round = (int)game.BetRound,
+                        //});
+                        //_db.SaveChanges();
+
+                        game.CurrentPlayer = game.Players.Where(p => p.IsPlaying).
+                            OrderBy(p => p.SeatNumber).
+                            First(p => p.SeatNumber + 
+                                    (game.Players.Where(p => p.IsPlaying).Max(p => p.SeatNumber) == user.SeatNumber ? 6 : 0)
+                            > user.SeatNumber).Name;
+
                         await SendGameInformation(user.TableId);
                     }
                 }
@@ -370,39 +405,57 @@ namespace PokerBoom.Server.Hubs
 
         public async Task ActionAllIn()
         {
+            //var user = Users.FirstOrDefault(u => u.ConnectionId == Context.ConnectionId);
+            //if (user != null)
+            //{
+            //    var game = Games.FirstOrDefault(g => g.TableId == user.TableId);
+            //    if (game != null)
+            //    {
+            //        game.Players = game.Players.OrderBy(p => p.SeatNumber).ToList();
+
+            //        int amount = game.Players.Where(p => p.IsPlaying).Min(p => p.Stack);
+            //        game.RoundRaiseAmount = amount;
+            //        var player = game.Players.FirstOrDefault(p => p.Name == Context.User.Identity.Name);
+            //        if (player != null)
+            //        {
+            //            user.Stack -= amount;
+            //            player.RoundBet = amount;
+            //            player.Stack -= amount;
+            //            player.HasMadeMove = true;
+            //        }
+            //        //TODO учитывать неактивных игроков (isplaying = false)
+            //        int idxNextPlayer = (game.Players.FindIndex(p => p.Name == game.CurrentPlayer) + 1) % game.Players.Count();
+            //        game.CurrentPlayer = game.Players[idxNextPlayer].Name;
+            //        await SendGameInformation(user.TableId);
+            //    }
+            //}
+        }
+
+        public async Task ActionFold()
+        {
             var user = Users.FirstOrDefault(u => u.ConnectionId == Context.ConnectionId);
             if (user != null)
             {
                 var game = Games.FirstOrDefault(g => g.TableId == user.TableId);
                 if (game != null)
                 {
-                    game.Players = game.Players.OrderBy(p => p.SeatNumber).ToList();
-
-                    int amount = game.Players.Where(p => p.IsPlaying).Min(p => p.Stack);
-                    game.RoundRaiseAmount = amount;
-                    var player = game.Players.FirstOrDefault(p => p.Name == Context.User.Identity.Name);
+                    var player = game.Players.FirstOrDefault(p => p.Name == user.Name);
                     if (player != null)
                     {
-                        user.Stack -= amount;
-                        player.RoundBet = amount;
-                        player.Stack -= amount;
-                        player.HasMadeMove = true;
+                        player.IsPlaying = false;
+                        if (game.Players.Where(p => p.IsPlaying).Count() == 1)
+                        {
+                            await NominateWinners(game);
+                            return;
+                        }
+                        game.CurrentPlayer = game.Players.Where(p => p.IsPlaying).
+                            OrderBy(p => p.SeatNumber).
+                            First(p => p.SeatNumber +
+                                    (game.Players.Where(p => p.IsPlaying).Max(p => p.SeatNumber) == user.SeatNumber ? 6 : 0)
+                            > user.SeatNumber).Name;
                     }
-                    //TODO учитывать неактивных игроков (isplaying = false)
-                    int idxNextPlayer = (game.Players.FindIndex(p => p.Name == game.CurrentPlayer) + 1) % game.Players.Count();
-                    game.CurrentPlayer = game.Players[idxNextPlayer].Name;
-                    await SendGameInformation(user.TableId);
                 }
-            }
-        }
-
-        public async Task ActionFold()
-        {
-            var player = Users.FirstOrDefault(u => u.ConnectionId == Context.ConnectionId);
-            if (player != null)
-            {
-                // если игрок остался один, то он победитель; isplaying = false
-                await SendGameInformation(player.TableId);
+                await SendGameInformation(user.TableId);
             }
         }
     }

@@ -1,6 +1,73 @@
-﻿@page "/reviewgame"
+﻿@inherits ReviewGameBase
+@page "/reviewgame"
+@using PokerBoom.Client.Shared;
 
-
+@if (ReviewGameInformation != null)
+{
+    <MudGrid Class="pa-4 ma-auto d-block">
+        <MudItem Class="d-block" Style="height: 60%;">
+            <div style="position: absolute; margin-top: 70px; width: 100%; height: 60%;">
+                <svg width="930" height="470" style="position:absolute; margin-left: 300px;">
+                    <ellipse cx="465" cy="235" rx="450" ry="220"
+                         style="fill:#2B5741;stroke:#321909;stroke-width:30" />
+                </svg>
+                @if (ReviewGameInformation.Winners.Count > 0)
+                {
+                    <MudPaper Style="position:absolute; top: 100px; left: 700px;">
+                        <MudText Typo="Typo.button">Выигрыш: @ReviewGameInformation.Pot</MudText><br />
+                        @foreach (var winner in ReviewGameInformation.Winners)
+                        {
+                            <MudText Typo="Typo.button">@winner</MudText><br />
+                        }
+                    </MudPaper>
+                }
+                @for (int i = 0; i < ReviewGameInformation.TableCards.Count; ++i)
+                {
+                    <img style="@string.Concat("position:absolute; margin-top: 185px; margin-left:", (540 + 95*i).ToString(), "px")" width="75" height="100"
+                 src="/img/cards/@string.Concat(ReviewGameInformation.TableCards[i].ToString(), ".png")">
+                }
+            </div>
+        </MudItem>
+        <MudItem>
+            <div style="position: absolute; top: 500px; left: 400px;">
+                @if (ReviewGameInformation.Players.FirstOrDefault(p => p.SeatNumber == 1) != null)
+                {
+                    <ReviewPlayerInfo ReviewGameInformation="ReviewGameInformation" ReviewGamePlayer="ReviewGameInformation.Players.FirstOrDefault(p => p.SeatNumber == 1)"></ReviewPlayerInfo>
+                }
+            </div>
+            <div style="position: absolute; top: 150px; left: 400px;">
+                @if (ReviewGameInformation.Players.FirstOrDefault(p => p.SeatNumber == 2) != null)
+                {
+                    <ReviewPlayerInfo ReviewGameInformation="ReviewGameInformation" ReviewGamePlayer="ReviewGameInformation.Players.FirstOrDefault(p => p.SeatNumber == 2)"></ReviewPlayerInfo>
+                }
+            </div>
+            <div style="position: absolute; top: 80px; left: 730px;">
+                @if (ReviewGameInformation.Players.FirstOrDefault(p => p.SeatNumber == 3) != null)
+                {
+                    <ReviewPlayerInfo ReviewGameInformation="ReviewGameInformation" ReviewGamePlayer="ReviewGameInformation.Players.FirstOrDefault(p => p.SeatNumber == 3)"></ReviewPlayerInfo>
+                }
+            </div>
+            <div style="position: absolute; top: 250px; left: 1200px;">
+                @if (ReviewGameInformation.Players.FirstOrDefault(p => p.SeatNumber == 4) != null)
+                {
+                    <ReviewPlayerInfo ReviewGameInformation="ReviewGameInformation" ReviewGamePlayer="ReviewGameInformation.Players.FirstOrDefault(p => p.SeatNumber == 4)"></ReviewPlayerInfo>
+                }
+            </div>
+            <div style="position: absolute; top: 530px; left: 1100px;">
+                @if (ReviewGameInformation.Players.FirstOrDefault(p => p.SeatNumber == 5) != null)
+                {
+                    <ReviewPlayerInfo ReviewGameInformation="ReviewGameInformation" ReviewGamePlayer="ReviewGameInformation.Players.FirstOrDefault(p => p.SeatNumber == 5)"></ReviewPlayerInfo>
+                }
+            </div>
+            <div style="position: absolute; top: 570px; left: 730px;">
+                @if (ReviewGameInformation.Players.FirstOrDefault(p => p.SeatNumber == 6) != null)
+                {
+                    <ReviewPlayerInfo ReviewGameInformation="ReviewGameInformation" ReviewGamePlayer="ReviewGameInformation.Players.FirstOrDefault(p => p.SeatNumber == 6)"></ReviewPlayerInfo>
+                }
+            </div>
+        </MudItem>
+    </MudGrid>
+}
 
 @code {
 

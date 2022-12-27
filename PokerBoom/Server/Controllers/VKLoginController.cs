@@ -38,11 +38,14 @@ namespace PokerBoom.Server.Controllers
             if (response.Error != null)
                 return BadRequest(new LoginResultViewModel { Error = response.ErrorDescription });
 
-            var user = _userManager.Users.First(x => x.VkId == response.UserId.ToString());
+            var user = _userManager.Users.FirstOrDefault(x => x.VkId == response.UserId.ToString());
             
             if (user == null)
             {
-                return Ok(new LoginResultViewModel { Success = false, Error = "No user found" });
+                var account = new ApplicationUser { UserName = response.UserId.ToString(), EmailConfirmed = false, VkId = response.UserId.ToString(), Currency = 1000 };
+                var res = await _userManager.CreateAsync(account);
+                await _userManager.AddToRoleAsync(account, "User");
+                user = _userManager.Users.FirstOrDefault(x => x.VkId == response.UserId.ToString());
             }
 
             await _signInManager.SignInAsync(user, true);

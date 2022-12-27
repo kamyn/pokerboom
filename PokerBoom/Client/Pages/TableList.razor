@@ -43,13 +43,19 @@
 
     <MudItem xs="2" >
         <MudGrid Class="d-block mt-1">
+            <MudText>Начать играть</MudText>
             <MudTextField Class="mb-4" @bind-Value="StackAmount" Label="Количество фишек" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="ConnectToTable">Присоединиться</MudButton> 
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="ConnectToTable">Присоединиться</MudButton>
+
+@*            <MudText Class="mt-4">Создать новый стол</MudText>
+            <MudTextField Class="mb-4" @bind-Value="StackAmount" Label="Название" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+            <MudTextField Class="mb-4" @bind-Value="StackAmount" Label="Малый блайнд" Variant="Variant.Outlined" Margin="Margin.Dense"></MudTextField>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="ConnectToTable">Создать стол</MudButton>*@
+
         </MudGrid>
-         
     </MudItem>
 </MudGrid>
 
 @code {
-    
+
 }

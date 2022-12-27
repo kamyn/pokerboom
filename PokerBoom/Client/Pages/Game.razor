@@ -1,5 +1,10 @@
 ﻿@inherits GameBase
 @page "/game"
+@layout GameLayout
+
+<div style="position:absolute; top:70px; right:10px;">
+    <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="LeaveTable">Выйти</MudButton>
+</div>
 
 @if (GameInformation != null && HandCards != null)
 {
@@ -14,7 +19,6 @@
             {
                  <MudPaper Style="position:absolute; top: 100px; left: 700px;">
                         <MudText Typo="Typo.button">Выигрыш: @GameInformation.Pot</MudText><br />
-                        <MudText Typo="Typo.button">Победители</MudText><br/>
                         @foreach (var winner in GameInformation.Winners)
                         {
                             <MudText Typo="Typo.button">@winner</MudText><br />
@@ -75,18 +79,21 @@
 </MudGrid>
 
 <MudPaper Style="position:absolute; bottom:2%; right:0%;">
-    @{
-        bool isTurnPlayer = true;
-        if (AuthState != null && AuthState.User.Identity.Name == GameInformation.CurrentPlayer)
-            isTurnPlayer = false;
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="Check" Disabled="isTurnPlayer">Чек</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Call" Disabled="isTurnPlayer">Колл</MudButton>
-        <MudButton Variant="Variant.Filled" Style="background-color: yellowgreen;" OnClick="Raise" Disabled="isTurnPlayer">Рейз</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Tertiary" OnClick="AllIn" Disabled="isTurnPlayer">Олл-ин</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Fold" Disabled="isTurnPlayer">Фолд</MudButton>
-        <MudSlider @bind-Value="RaiseBet" Min="@GameInformation.RoundRaiseAmount" Max="@GameInformation.Players.Where(p => p.IsPlaying).Min(p => p.Stack)" 
-                   Color="Color.Info" Class="ml-3 mr-3" Size="Size.Medium" Disabled="isTurnPlayer">Ставка: @RaiseBet.ToString()</MudSlider>
-    }
+        @{
+            bool isTurnPlayer = true;
+            bool isNotCheckPosible = false;
+            if (AuthState != null && AuthState.User.Identity.Name == GameInformation.CurrentPlayer)
+                isTurnPlayer = false;
+            if (GameInformation.RoundRaiseAmount != GameInformation.Players.First(p => p.Username == AuthState.User.Identity.Name).Bet && isTurnPlayer)
+                isNotCheckPosible = true;
+            <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="Check" Disabled="isTurnPlayer">Чек</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Call" Disabled="isTurnPlayer">Колл</MudButton>
+            <MudButton Variant="Variant.Filled" Style="background-color: yellowgreen;" OnClick="Raise" Disabled="isTurnPlayer">Рейз</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Tertiary" OnClick="AllIn" Disabled="isTurnPlayer">Олл-ин</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Fold" Disabled="isTurnPlayer">Фолд</MudButton>
+            <MudSlider @bind-Value="RaiseBet" Min="@GameInformation.RoundRaiseAmount" Max="@GameInformation.Players.Where(p => p.IsPlaying).Min(p => p.Stack)"
+               Color="Color.Info" Class="ml-3 mr-3" Size="Size.Medium" Disabled="isNotCheckPosible">Ставка: @RaiseBet.ToString()</MudSlider>
+         }
 
 </MudPaper>
 }

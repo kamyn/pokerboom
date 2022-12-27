@@ -5,6 +5,9 @@ using System.Text.Json;
 using PokerBoom.Shared.Models;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authorization;
+using PokerBoom.Client.States;
+using System.Net.Http;
+using System.Net.Http.Json;
 
 namespace PokerBoom.Client.Pages
 {
@@ -13,7 +16,9 @@ namespace PokerBoom.Client.Pages
     {
         [Inject] protected ILocalStorageService _localStorage { get; set; }
         [Inject] protected NavigationManager _navigationManager { get; set; }
-        protected double RaiseBet { get; set; }
+        [Inject] protected HttpClient? _httpClient { get; set; }
+        [Inject] protected BalanceState _balanceState { get; set; }
+        protected int RaiseBet { get; set; } = 0;
 
         [Inject] public AuthenticationStateProvider AuthenticationStateProvider { get; set; }
 
@@ -23,22 +28,15 @@ namespace PokerBoom.Client.Pages
 
         public GameInformation GameInformation { get; set; }
         public List<int> HandCards { get; set; } 
-        //public GameInformation GameInformation { get; set; } = new GameInformation()
-        //{
-        //    Players = new List<GamePlayer> { new GamePlayer() { Username = "pavel1", SeatNumber = 1 },
-        //                                     new GamePlayer() { Username = "egor", SeatNumber = 2 },
-        //                                    new GamePlayer() { Username = "timur", SeatNumber = 3 },
-        //                                    new GamePlayer() { Username = "lexa", SeatNumber = 4 },
-        //                                    new GamePlayer() { Username = "kirill", SeatNumber = 5 },
-        //                                    new GamePlayer() { Username = "tasya", SeatNumber = 6 }},
-        //    TableCards = new List<int> { 1, 2, 3, 4, 5}, 
-        //    HandCards = new List<int> { 5, 43 },
-        //    CurrentPlayer = "pavel1"
-        //};
 
         protected override async Task OnInitializedAsync()
         {
             AuthState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
+            var response = await _httpClient.GetAsync($"/api/balance?username={AuthState.User.Identity.Name}");
+            int balance = (await response.Content.ReadFromJsonAsync<GetBalanceViewModel>()).Balance;
+
+            _balanceState.OnBalanceChanged.Invoke(balance);
 
             _hubConnection = new HubConnectionBuilder()
                 .WithUrl(_navigationManager.ToAbsoluteUri("/gamehub"))
@@ -64,7 +62,8 @@ namespace PokerBoom.Client.Pages
 
             await _hubConnection.StartAsync();
 
-            var playerInfo = new KeyValuePair<int, int>(await _localStorage.GetItemAsync<int>("currentTable"), 100); // 100 is stack amount
+            var playerInfo = new KeyValuePair<int, int>(await _localStorage.GetItemAsync<int>("currentTable"), 
+                await _localStorage.GetItemAsync<int>("stackAmount"));
             await _hubConnection.SendAsync("AddToUsers", playerInfo);
 
             await base.OnInitializedAsync();
@@ -98,14 +97,7 @@ namespace PokerBoom.Client.Pages
 
         protected async Task Raise()
         {
-            await _hubConnection.SendAsync("ActionRaise", 10); // 10 is raise amount
-            //if (GameInformation.PlayerRaise > 0 &&
-            //    GameInformation.Players.First(e => e.Username == AuthState.User.Identity.Name).Stack >
-            //    GameInformation.PlayerRaise + GameInformation.RaiseAmount)
-            //{
-            //    await _hubConnection.SendAsync("ActionRaise", GameInformation.PlayerRaise);
-            //}
-            //GameInformation.PlayerRaise = 0;
+            await _hubConnection.SendAsync("ActionRaise", RaiseBet);
         }
     }
 }

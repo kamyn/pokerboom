@@ -7,6 +7,7 @@ using PokerBoom.Shared;
 using Microsoft.AspNetCore.Http;
 using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.IdentityModel.Tokens;
 
 namespace PokerBoom.Client.Pages
 {
@@ -18,13 +19,6 @@ namespace PokerBoom.Client.Pages
         [Inject] protected AuthenticationStateProvider _authenticationStateProvider { get; set; }
 
         protected LoginViewModel User { get; set; } = new LoginViewModel();
-        //protected string? LocalValue { get; set; }
-
-        //protected override async Task OnInitializedAsync()
-        //{
-        //    await _localStorage.SetItemAsync("authToken", "123");
-        //    LocalValue = await _localStorage.GetItemAsync<string>("authToken");
-        //}
 
         protected async Task Login()
         {

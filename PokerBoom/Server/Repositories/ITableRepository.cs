@@ -7,5 +7,7 @@ namespace PokerBoom.Server.Repositories
         public Task<IEnumerable<PokerTable>> GetTables();
 
         public Task<PokerTable> GetTableById(int tableId);
+
+        public Task SetPlayers(int tableId, int players);
     }
 }
