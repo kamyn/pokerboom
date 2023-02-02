@@ -29,7 +29,7 @@ builder.Services.AddResponseCompression(opts =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DBConnection"),
-        new MySqlServerVersion(new Version(8, 0, 29))
+        new MySqlServerVersion(new Version(8, 0, 31))
 )).
     AddIdentity<ApplicationUser, IdentityRole>(config =>    // change config
     {
@@ -97,7 +97,14 @@ else
 
 using (var scope = app.Services.CreateScope())
 {
-    DbInit.Init(scope.ServiceProvider);
+    //DbInit.Init(scope.ServiceProvider);
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<AppDbContext>();
+    if (context.Database.GetPendingMigrations().Any())
+    {
+        context.Database.Migrate();
+    }
+
 }
 
 app.UseHttpsRedirection();

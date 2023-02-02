@@ -38,33 +38,42 @@ namespace PokerBoom.Server.Controllers
             if (response.Error != null)
                 return BadRequest(new LoginResultViewModel { Error = response.ErrorDescription });
 
-            var user = _userManager.Users.FirstOrDefault(x => x.VkId == response.UserId.ToString());
+            try
+            {
+                var user = _userManager.Users.FirstOrDefault(x => x.VkId == response.UserId.ToString());
+                if (user == null)
+                {
+                    var account = new ApplicationUser { UserName = response.UserId.ToString(), EmailConfirmed = false, VkId = response.UserId.ToString(), Currency = 1000 };
+                    var res = await _userManager.CreateAsync(account);
+                    await _userManager.AddToRoleAsync(account, "User");
+                    user = _userManager.Users.FirstOrDefault(x => x.VkId == response.UserId.ToString());
+                }
+
+                await _signInManager.SignInAsync(user, true);
+
+                var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.UserName) };
+                var roles = await _userManager.GetRolesAsync(user);
+                foreach (var role in roles)
+                {
+                    claims.Add(new Claim(ClaimTypes.Role, role));
+                }
+                var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(AuthOptions.SECURITY_KEY));
+                var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
+                var expiry = DateTime.Now.AddDays(Convert.ToInt32(AuthOptions.EXPIRY_IN_DAY));
+                var token = new JwtSecurityToken(AuthOptions.ISSUER,
+                                                 AuthOptions.AUDIENCE,
+                                                 claims,
+                                                 expires: expiry,
+                                                 signingCredentials: credentials);
+                return Ok(new LoginResultViewModel { Success = true, Token = new JwtSecurityTokenHandler().WriteToken(token) });
+            }
+
+            catch (Exception ex)
+            {
+
+            }
+            return BadRequest();
             
-            if (user == null)
-            {
-                var account = new ApplicationUser { UserName = response.UserId.ToString(), EmailConfirmed = false, VkId = response.UserId.ToString(), Currency = 1000 };
-                var res = await _userManager.CreateAsync(account);
-                await _userManager.AddToRoleAsync(account, "User");
-                user = _userManager.Users.FirstOrDefault(x => x.VkId == response.UserId.ToString());
-            }
-
-            await _signInManager.SignInAsync(user, true);
-
-            var claims = new List<Claim> { new Claim(ClaimTypes.Name, user.UserName) };
-            var roles = await _userManager.GetRolesAsync(user);
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-            }
-            var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(AuthOptions.SECURITY_KEY));
-            var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-            var expiry = DateTime.Now.AddDays(Convert.ToInt32(AuthOptions.EXPIRY_IN_DAY));
-            var token = new JwtSecurityToken(AuthOptions.ISSUER,
-                                             AuthOptions.AUDIENCE,
-                                             claims,
-                                             expires: expiry,
-                                             signingCredentials: credentials);
-            return Ok(new LoginResultViewModel { Success = true, Token = new JwtSecurityTokenHandler().WriteToken(token) });            
         }
     }
 }

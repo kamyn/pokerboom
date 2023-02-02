@@ -16,7 +16,7 @@ namespace PokerBoom.Server.Data
 
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
         {
-            base.Database.EnsureCreated();
+            //base.Database.EnsureCreated();
 
             ChangeTracker.LazyLoadingEnabled = false;
         }
