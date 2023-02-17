@@ -1,6 +1,8 @@
-﻿@inherits GameListBase
-@page "/gameslist"
-@using PokerBoom.Shared.Models;
+﻿@page "/gameslist"
+@inherits GameListBase
+@using PokerBoom.Shared.Models
+@using Microsoft.AspNetCore.Authorization
+@attribute [Authorize(Roles = "Administrator")]
 
 <style>
     .selected {
@@ -16,11 +18,11 @@
     }
     
 </style>
-@*<AuthorizeView Roles="Administrator">*@
+
 <MudGrid Spacing="4" Class="pa-6 overflow-hidden">
     <MudItem xs="10">
         <MudTable Items="@Games" Dense="true" Filter="new Func<GameReview,bool>(FilterFunc1)" @bind-SelectedItem="selectedGame"
-                      @ref="mudTable" RowClassFunc="@SelectedRowClassFunc" T="GameReview">
+                        @ref="mudTable" RowClassFunc="@SelectedRowClassFunc" T="GameReview">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Игры</MudText>
                 <MudSpacer />
@@ -39,18 +41,13 @@
                 <MudTd DataLabel="Ставки">@context.SmallBlind/@context.SmallBlind</MudTd>
                 </RowTemplate>
             <PagerContent>
-                 <MudTablePager HorizontalAlignment="HorizontalAlignment.End" HideRowsPerPage="true" />
+                    <MudTablePager HorizontalAlignment="HorizontalAlignment.End" HideRowsPerPage="true" />
             </PagerContent>
         </MudTable>
     </MudItem>
     <MudItem xs="2">
         <MudGrid Class="d-block mt-1">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="ViewGame">Присоединиться</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth="true" OnClick="ViewGame">Смотреть игру</MudButton>
         </MudGrid>
     </MudItem>
 </MudGrid>
-@*</AuthorizeView>*@
-
-@code {
-
-}

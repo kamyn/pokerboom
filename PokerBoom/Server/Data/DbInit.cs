@@ -10,9 +10,18 @@ namespace PokerBoom.Server.Data
         public static async void Init(IServiceProvider provider)
         {
             var userManager = provider.GetService<UserManager<ApplicationUser>>();
-            var user = new ApplicationUser { UserName = "root1", EmailConfirmed = false, Currency = 1000 }; // new ApplicationUser { UserName = "pavel1", EmailConfirmed = false, VkId = "250617147", Currency = 1000 };
-            var result = userManager.CreateAsync(user, "123").GetAwaiter().GetResult(); // CreateAsync(user, pass);
-            userManager.AddToRoleAsync(user, "Administrator").GetAwaiter().GetResult();
+            if (userManager != null)
+            {
+                var user1 = new ApplicationUser { UserName = "user1", EmailConfirmed = false, Currency = 1000 }; // new ApplicationUser { UserName = "pavel1", EmailConfirmed = false, VkId = "250617147", Currency = 1000 };
+                var user2 = new ApplicationUser { UserName = "user2", EmailConfirmed = false, Currency = 1000 };
+                var result1 = userManager.CreateAsync(user1, "123").GetAwaiter().GetResult();
+                var result2 = userManager.CreateAsync(user2, "123").GetAwaiter().GetResult();
+                if (result1.Succeeded && result2.Succeeded)
+                {
+                    userManager.AddToRoleAsync(user1, "Administrator").GetAwaiter().GetResult();
+                    userManager.AddToRoleAsync(user2, "Administrator").GetAwaiter().GetResult();
+                }
+            }
         }
     }
 }

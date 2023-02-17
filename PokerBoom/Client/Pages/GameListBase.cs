@@ -11,12 +11,13 @@ namespace PokerBoom.Client.Pages
         [Inject] protected ILocalStorageService _localStorage { get; set; }
         [Inject] protected NavigationManager _navigationManager { get; set; }
         [Inject] protected HttpClient _httpClient { get; set; }
+
         protected int selectedRowNumber = -1;
-        protected MudTable<GameReview> mudTable { get; set; }
-        protected GameReview Table { get; set; }
-        protected string searchGameString { get; set; }
-        protected GameReview selectedGame { get; set; }
-        protected IEnumerable<GameReview> Games { get; set; }
+        protected MudTable<GameReview>? mudTable { get; set; }
+        protected GameReview? Game { get; set; }
+        protected string? searchGameString { get; set; }
+        protected GameReview? selectedGame { get; set; }
+        protected IEnumerable<GameReview>? Games { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -26,6 +27,7 @@ namespace PokerBoom.Client.Pages
                 Games = result.Games;
             }
             StateHasChanged();
+            await base.OnInitializedAsync();
         }
 
         protected async Task ViewGame()

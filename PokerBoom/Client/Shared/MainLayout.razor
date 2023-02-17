@@ -11,21 +11,21 @@
 <MudDialogProvider/>
 <MudSnackbarProvider/>
 
-@*<AuthorizeView Roles="Administrator">
+<AuthorizeView Roles="Administrator">
     <Authorized>
         <MudAppBar Color="Color.Primary" Fixed="false">
             <MudText Typo="Typo.h6">POKERBOOM</MudText>
             <MudButton Class="ml-3" Variant="Variant.Filled" Color="Color.Primary" OnClick="ToTableList">Игровые столы</MudButton>
-            <MudButton Class="ml-3" Variant="Variant.Filled" Color="Color.Primary">Просмотр игр</MudButton>
+            <MudButton Class="ml-3" Variant="Variant.Filled" Color="Color.Primary" OnClick="ToGamesList">Просмотр игр</MudButton>
             <MudSpacer />
             <MudText Typo="Typo.button">@context.User.Identity.Name</MudText>
-            <MudText Typo="Typo.button" Class="ml-4">Баланс: 1000</MudText>
+            <MudText Typo="Typo.button" Class="ml-4">Баланс: @Balance</MudText>
             <MudButton Variant="Variant.Filled" Color="Color.Secondary" Class="ml-4" OnClick="Logout">Выйти</MudButton>
         </MudAppBar>
     </Authorized>
-</AuthorizeView>*@
+</AuthorizeView>
 
-<AuthorizeView>
+<AuthorizeView Roles="User">
     <Authorized>
         <MudAppBar Color="Color.Primary" Fixed="false">
             <MudText Typo="Typo.h6">POKERBOOM</MudText>
@@ -59,7 +59,7 @@
         ((AppAuthenticationStateProvider)authProvider).MarkUserAsLoggedOut();
     }
 
-    protected async Task ToReviewGames()
+    protected async Task ToGamesList()
     {
         navigation.NavigateTo("/gameslist");
     }

@@ -26,7 +26,6 @@ namespace PokerBoom.Client.Pages
             var result = await response.Content.ReadFromJsonAsync<LoginResultViewModel>();
             if (result.Success)
             {
-                var token = result.Token;
                 await _localStorage.SetItemAsync("authToken", result.Token);
                 ((AppAuthenticationStateProvider)_authenticationStateProvider).MarkUserAsAuthenticated(result.Token);
                 _http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", result.Token);

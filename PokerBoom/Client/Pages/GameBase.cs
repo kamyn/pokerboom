@@ -8,6 +8,10 @@ using Microsoft.AspNetCore.Authorization;
 using PokerBoom.Client.States;
 using System.Net.Http;
 using System.Net.Http.Json;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Components.WebAssembly.Authentication;
+using static System.Net.WebRequestMethods;
+using System.Net.Http.Headers;
 
 namespace PokerBoom.Client.Pages
 {
@@ -31,6 +35,8 @@ namespace PokerBoom.Client.Pages
 
         protected override async Task OnInitializedAsync()
         {
+            var token = await _localStorage.GetItemAsync<string>("authToken");
+
             AuthState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
             var response = await _httpClient.GetAsync($"/api/balance?username={AuthState.User.Identity.Name}");
@@ -39,7 +45,12 @@ namespace PokerBoom.Client.Pages
             _balanceState.OnBalanceChanged.Invoke(balance);
 
             _hubConnection = new HubConnectionBuilder()
-                .WithUrl(_navigationManager.ToAbsoluteUri("/gamehub"))
+                .WithUrl(_navigationManager.ToAbsoluteUri("/gamehub"), options =>
+                {
+                    options.AccessTokenProvider = () => Task.FromResult<string?>(token);
+                    options.SkipNegotiation = true;
+                    options.Transports = Microsoft.AspNetCore.Http.Connections.HttpTransportType.WebSockets;
+                })
                 .Build();
 
             _hubConnection.On("ReceiveHandCards", (object cards) =>
@@ -59,7 +70,6 @@ namespace PokerBoom.Client.Pages
                 await _localStorage.RemoveItemAsync("currentTable");
                 _navigationManager.NavigateTo("/");
             });
-
             await _hubConnection.StartAsync();
 
             var playerInfo = new KeyValuePair<int, int>(await _localStorage.GetItemAsync<int>("currentTable"), 

@@ -18,8 +18,13 @@ namespace PokerBoom.Server.Controllers
         [HttpGet]
         public async Task<IActionResult> GetBalance(string username)
         {
-            int balance = (await _userManager.FindByNameAsync(username)).Currency;
-            return Ok(new GetBalanceViewModel { Balance = balance });
+            var appUser = await _userManager.FindByNameAsync(username);
+            if (appUser != null) 
+            {
+                int balance = appUser.Currency;
+                return Ok(new GetBalanceViewModel { Balance = balance });
+            }
+            return Ok(new GetBalanceViewModel { Balance = 0 });
         }
     }
 }

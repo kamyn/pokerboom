@@ -5,6 +5,8 @@ using PokerBoom.Shared.Models;
 using System.Net.Http.Json;
 using PokerBoom.Client.States;
 using Microsoft.AspNetCore.Components.Authorization;
+using static System.Net.WebRequestMethods;
+using System.Net.Http.Headers;
 
 namespace PokerBoom.Client.Pages
 {

@@ -1,6 +1,13 @@
-﻿@inherits ReviewGameBase
-@page "/reviewgame"
+﻿@page "/reviewgame"
+@inherits ReviewGameBase
+@layout GameLayout
 @using PokerBoom.Client.Shared;
+@using Microsoft.AspNetCore.Authorization
+
+<div style="position:absolute; top:70px; right:10px;">
+    <MudButton Color="Color.Secondary" Variant="Variant.Filled" OnClick="LeaveReviewGame">Выйти</MudButton>
+</div>
+
 
 @if (ReviewGameInformation != null)
 {
@@ -67,8 +74,4 @@
             </div>
         </MudItem>
     </MudGrid>
-}
-
-@code {
-
 }

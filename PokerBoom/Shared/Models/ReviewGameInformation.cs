@@ -16,6 +16,7 @@ namespace PokerBoom.Shared.Models
         public List<string> Winners { get; set; }
         public ReviewGameInformation()
         {
+            Players = new List<ReviewGamePlayer>();
             TableCards = new List<int>();
             Winners = new List<string>();
         }

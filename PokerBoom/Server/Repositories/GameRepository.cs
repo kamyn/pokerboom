@@ -12,28 +12,18 @@ namespace PokerBoom.Server.Repositories
             _db = db;
         }
 
-        public async Task<IEnumerable<GameReview>> GetGames()
+        public async Task<IEnumerable<GameReview>> GetGamesList()
         {
             var games = new List<GameReview>();
-            try
+            foreach (var game in _db.Games.Include(g => g.Table).Include(g => g.Players))
             {
-                //var g = _db.Games.Include(g => g.Table).ToList();
-                _db.ChangeTracker.LazyLoadingEnabled = false;
-
-                foreach (var game in _db.Games.Include(g => g.Table).Include(g => g.Players))
+                games.Add(new GameReview
                 {
-                    games.Add(new GameReview
-                    {
-                        Id = game.Id,
-                        Players = game.Players.Count(),
-                        SmallBlind = game.Table.SmallBlind,
-                        TableName = game.Table.Name
-                    });
-                }
-            }
-            catch(Exception ex)
-            {
-
+                    Id = game.Id,
+                    Players = game.Players.Count(),
+                    SmallBlind = game.Table.SmallBlind,
+                    TableName = game.Table.Name
+                });
             }
             return games;
         }

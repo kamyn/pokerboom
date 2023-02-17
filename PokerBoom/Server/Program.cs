@@ -19,12 +19,11 @@ using PokerBoom.Server.Repositories;
 var builder = WebApplication.CreateBuilder(args);
 
 
-builder.Services.AddSignalR();
-builder.Services.AddResponseCompression(opts =>
-{
-    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-        new[] { "application/octet-stream" });
-});
+//builder.Services.AddResponseCompression(opts =>
+//{
+//    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+//        new[] { "application/octet-stream" });
+//});
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
@@ -54,6 +53,19 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(AuthOptions.SECURITY_KEY)),
         ValidateIssuerSigningKey = true,
     };
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            var accessToken = context.Request.Query["access_token"];
+            var path = context.HttpContext.Request.Path;
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
 }).
     AddOAuth("VK", "vkontakte", config =>
     {
@@ -63,8 +75,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         config.CallbackPath = new PathString(AuthOptions.VK_CALLBACK_PATH);
         config.AuthorizationEndpoint = AuthOptions.VK_AUTH_END_POINT;
         config.TokenEndpoint = AuthOptions.VK_TOKEN_END_POINT;
-        config.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "VkId"); 
-    });         
+        config.ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "VkId");
+    });
 
 builder.Services.AddAuthorization(options =>
 {
@@ -77,6 +89,8 @@ builder.Services.AddAuthorization(options =>
         builder.RequireAssertion(x => x.User.HasClaim(ClaimTypes.Role, "User") || x.User.HasClaim(ClaimTypes.Role, "Administrator"));
     });
 });
+
+builder.Services.AddSignalR();
 
 builder.Services.AddScoped<ITableRepository, TableRepository>();
 builder.Services.AddScoped<IGameRepository, GameRepository>();
@@ -97,14 +111,13 @@ else
 
 using (var scope = app.Services.CreateScope())
 {
-    //DbInit.Init(scope.ServiceProvider);
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<AppDbContext>();
     if (context.Database.GetPendingMigrations().Any())
     {
         context.Database.Migrate();
     }
-
+    DbInit.Init(scope.ServiceProvider);
 }
 
 app.UseHttpsRedirection();
@@ -121,7 +134,7 @@ app.MapRazorPages();
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
 app.MapHub<GameReviewHub>("/gamereviewhub");
-app.MapFallbackToFile("index.html");
 
+app.MapFallbackToFile("index.html");
 
 app.Run();

@@ -6,7 +6,6 @@ using PokerBoom.Shared.Models;
 
 namespace PokerBoom.Server.Controllers
 {
-    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class GamesController : ControllerBase
@@ -20,7 +19,7 @@ namespace PokerBoom.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<GetGamesResultViewModel>> GetGames()
         {
-            var games = await _gameRepository.GetGames();
+            var games = await _gameRepository.GetGamesList();
             return Ok(new GetGamesResultViewModel { Successful = true, Games = games });
         }
     }

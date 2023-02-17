@@ -11,11 +11,9 @@ namespace PokerBoom.Server.Controllers
     [ApiController]
     public class TableController : ControllerBase
     {
-        private readonly AppDbContext _db;
         private readonly ITableRepository _tableRepository;
-        public TableController(AppDbContext db, ITableRepository tableRepository)
+        public TableController(ITableRepository tableRepository)
         {
-            _db = db;
             _tableRepository = tableRepository;
         }
 
