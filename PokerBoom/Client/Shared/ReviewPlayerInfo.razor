@@ -17,10 +17,13 @@ else
     <MudPaper>
         <MudText>@ReviewGamePlayer.Username (@ReviewGamePlayer.Stack)</MudText>
         <MudText Style="background-color: black; color:white;">@ReviewGamePlayer.Bet</MudText>
-        <div style="position:relative">
-            <img style="position:absolute" width="70" height="100" src="/img/cards/@string.Concat(ReviewGamePlayer.HandCards[0],".png")">
+        @if (ReviewGamePlayer.IsPlaying)
+        {
+            <div style="position:relative">
+                <img style="position:absolute" width="70" height="100" src="/img/cards/@string.Concat(ReviewGamePlayer.HandCards[0],".png")">
             <img style="position:absolute; left: 80px;" width="70" height="100" src="/img/cards/@string.Concat(ReviewGamePlayer.HandCards[1],".png")">
-        </div>
+            </div>
+        }
     </MudPaper>
 }
 

@@ -35,7 +35,9 @@ namespace PokerBoom.Server.Hubs
             int tableId = playerInfo.Key;
             int stack = playerInfo.Value;
             var table = await _tableRepository.GetTableById(tableId);
-            
+            if (table.Id == -1)
+                await Clients.Client(Context.ConnectionId).SendAsync("ReceiveKick");
+
             if (Context.User?.Identity?.Name != null)
             {
                 var userName = Context.User.Identity.Name;
@@ -92,10 +94,11 @@ namespace PokerBoom.Server.Hubs
                             game.Players.Remove(player);
                             if (game.Players.Where(p => p.IsPlaying).Count() < 2)
                                 await NominateWinners(game);
-                            await _tableRepository.SetPlayers(user.TableId, game.Players.Count());
                             await SendGameInformation(user.TableId);
                         }
                     }
+                    if (_tableRepository.GetTableById(user.TableId).Id != -1)
+                        await _tableRepository.SetPlayers(user.TableId, Users.Where(u => u.TableId == user.TableId).Count());
                 }
             }
         }
@@ -238,9 +241,12 @@ namespace PokerBoom.Server.Hubs
                         await _userManager.UpdateAsync(userInfo);
                         Users.Remove(user);
                     }
-                    _tableRepository.SetPlayers(game.TableId, 0);
+                    if (_tableRepository.GetTableById(user.TableId).Id != -1)
+                        await _tableRepository.SetPlayers(game.TableId, 0);
+                    await Clients.Groups(game.TableId.ToString()).SendAsync("ReceiveKick");
                     return;
                 }
+                return;
             }
             var players = game.Players.Where(p => p.IsPlaying);
 
@@ -309,65 +315,65 @@ namespace PokerBoom.Server.Hubs
                     if (game != null)
                     {
                         var player = game.Players.FirstOrDefault(p => p.Name == userName);
-                        var prevPlayer = game.Players.Where(p => p.IsPlaying).
-                                OrderByDescending(p => p.SeatNumber).
-                                First(p => p.SeatNumber -
-                                        (game.Players.Where(p => p.IsPlaying).Min(p => p.SeatNumber) == user.SeatNumber ? 6 : 0)
-                                < user.SeatNumber);
+                        var prevPlayer = game.Players.Where(p => p.IsPlaying).OrderByDescending(p => p.SeatNumber).FirstOrDefault(p => p.SeatNumber < user.SeatNumber);
+                        if (prevPlayer == null)
+                            prevPlayer = game.Players.Where(p => p.IsPlaying).OrderBy(p => p.SeatNumber).First();
+
                         if (player != null)
                         {
                             if (player.RoundBet == prevPlayer.RoundBet)
+                            {
                                 player.HasMadeMove = true;
-                            _db.Bets.Add(new Entities.Bet
-                            {
-                                BetAmount = 0,
-                                Game = _db.Games.First(g => g.Id == game.Id),
-                                Player = _db.Players.First(p => p.SeatPlace == player.SeatNumber && p.GameId == game.Id),
-                                Round = (int)game.BetRound,
-                            });
-                            _db.SaveChanges();
-                            if (game.Players.Where(p => p.IsPlaying).All(p => p.RoundBet == game.Players.Max(p => p.RoundBet)) &&
-                                game.Players.Where(p => p.IsPlaying).All(p => p.HasMadeMove))
-                            {
-                                game.BetRound = game.BetRound + 1;
-                                switch (game.BetRound)
+                                _db.Bets.Add(new Entities.Bet
                                 {
-                                    case Round.Flop: 
-                                        game.TableCards.AddRange(game.Deck.NextCards(3));
-                                        var dbBoard = _db.Games.Where(g => g.Id == game.Id).Include(g => g.Board).First().Board;
-                                        dbBoard.Card1 = game.TableCards[0];
-                                        dbBoard.Card2 = game.TableCards[1];
-                                        dbBoard.Card3 = game.TableCards[2];
-                                        _db.SaveChanges();
-                                        break;
-                                    case Round.Turn: 
-                                        game.TableCards.Add(game.Deck.NextCard());
-                                        _db.Games.Where(g => g.Id == game.Id).Include(g => g.Board).First().Board.Card4 = game.TableCards[3];
-                                        _db.SaveChanges();
-                                        break;
-                                    case Round.River:
-                                        game.TableCards.Add(game.Deck.NextCard());
-                                        _db.Games.Where(g => g.Id == game.Id).Include(g => g.Board).First().Board.Card5 = game.TableCards[4];
-                                        _db.SaveChanges();
-                                        break;
-                                    case Round.PostRiver: await NominateWinners(game); return;
-                                }
-                                foreach (var p in game.Players)
+                                    BetAmount = 0,
+                                    Game = _db.Games.First(g => g.Id == game.Id),
+                                    Player = _db.Players.First(p => p.SeatPlace == player.SeatNumber && p.GameId == game.Id),
+                                    Round = (int)game.BetRound,
+                                });
+                                _db.SaveChanges();
+                                if (game.Players.Where(p => p.IsPlaying).All(p => p.RoundBet == game.Players.Max(p => p.RoundBet)) &&
+                                    game.Players.Where(p => p.IsPlaying).All(p => p.HasMadeMove))
                                 {
-                                    p.HasMadeMove = false;
-                                    p.RoundBet = 0;
+                                    game.BetRound = game.BetRound + 1;
+                                    switch (game.BetRound)
+                                    {
+                                        case Round.Flop:
+                                            game.TableCards.AddRange(game.Deck.NextCards(3));
+                                            var dbBoard = _db.Games.Where(g => g.Id == game.Id).Include(g => g.Board).First().Board;
+                                            dbBoard.Card1 = game.TableCards[0];
+                                            dbBoard.Card2 = game.TableCards[1];
+                                            dbBoard.Card3 = game.TableCards[2];
+                                            _db.SaveChanges();
+                                            break;
+                                        case Round.Turn:
+                                            game.TableCards.Add(game.Deck.NextCard());
+                                            _db.Games.Where(g => g.Id == game.Id).Include(g => g.Board).First().Board.Card4 = game.TableCards[3];
+                                            _db.SaveChanges();
+                                            break;
+                                        case Round.River:
+                                            game.TableCards.Add(game.Deck.NextCard());
+                                            _db.Games.Where(g => g.Id == game.Id).Include(g => g.Board).First().Board.Card5 = game.TableCards[4];
+                                            _db.SaveChanges();
+                                            break;
+                                        case Round.PostRiver: await NominateWinners(game); return;
+                                    }
+                                    foreach (var p in game.Players)
+                                    {
+                                        p.HasMadeMove = false;
+                                        p.RoundBet = 0;
+                                    }
+                                    game.RoundRaiseAmount = 0;
                                 }
-                                game.RoundRaiseAmount = 0;
+
+                                var nextPlayer = game.Players.Where(p => p.IsPlaying).OrderBy(p => p.SeatNumber).FirstOrDefault(p => p.SeatNumber > user.SeatNumber);
+                                if (nextPlayer == null)
+                                    nextPlayer = game.Players.Where(p => p.IsPlaying).OrderBy(p => p.SeatNumber).First();
+
+                                game.CurrentPlayer = nextPlayer.Name;
+
+                                await SendGameInformation(user.TableId);
                             }
-
-                            if (player.RoundBet == prevPlayer.RoundBet)
-                                game.CurrentPlayer = game.Players.Where(p => p.IsPlaying).
-                                    OrderBy(p => p.SeatNumber).
-                                    First(p => p.SeatNumber +
-                                            (game.Players.Where(p => p.IsPlaying).Max(p => p.SeatNumber) == user.SeatNumber ? 6 : 0)
-                                    > user.SeatNumber).Name;
-
-                            await SendGameInformation(user.TableId);
                         }
                     }
                 }
@@ -388,18 +394,17 @@ namespace PokerBoom.Server.Hubs
                         game.Players = game.Players.OrderBy(p => p.SeatNumber).ToList();
                         try
                         {
-                            var prevPlayer = game.Players.Where(p => p.IsPlaying).
-                            OrderBy(p => p.SeatNumber).
-                            First(p => p.SeatNumber +
-                                    (game.Players.Where(p => p.IsPlaying).Max(p => p.SeatNumber) == user.SeatNumber ? 6 : 0)
-                            > user.SeatNumber);
                             var player = game.Players.FirstOrDefault(p => p.Name == userName);
+                            var prevPlayer = game.Players.Where(p => p.IsPlaying).OrderByDescending(p => p.SeatNumber).FirstOrDefault(p => p.SeatNumber < user.SeatNumber);
+                            if (prevPlayer == null)
+                                prevPlayer = game.Players.Where(p => p.IsPlaying).OrderBy(p => p.SeatNumber).First();
+
                             if (prevPlayer != null && player != null)
                             {
                                 user.Stack = (user.Stack - game.RoundRaiseAmount + player.RoundBet);
                                 player.Stack = (player.Stack - game.RoundRaiseAmount + player.RoundBet);
                                 game.Pot += (game.RoundRaiseAmount - player.RoundBet);
-                                player.RoundBet = prevPlayer.RoundBet;
+                                player.RoundBet = game.RoundRaiseAmount;
                                 player.HasMadeMove = true;
 
                                 _db.Bets.Add(new Entities.Bet
@@ -452,11 +457,12 @@ namespace PokerBoom.Server.Hubs
                             game.RoundRaiseAmount = 0;
                         }
 
-                        game.CurrentPlayer = game.Players.Where(p => p.IsPlaying).
-                            OrderBy(p => p.SeatNumber).
-                            First(p => p.SeatNumber +
-                                    (game.Players.Where(p => p.IsPlaying).Max(p => p.SeatNumber) == user.SeatNumber ? 6 : 0)
-                            > user.SeatNumber).Name;
+                        var nextPlayer = game.Players.Where(p => p.IsPlaying).OrderBy(p => p.SeatNumber).FirstOrDefault(p => p.SeatNumber > user.SeatNumber);
+                        if (nextPlayer == null)
+                            nextPlayer = game.Players.Where(p => p.IsPlaying).OrderBy(p => p.SeatNumber).First();
+
+                        game.CurrentPlayer = nextPlayer.Name;
+
                         await SendGameInformation(user.TableId);
                     }
                 }
@@ -496,11 +502,11 @@ namespace PokerBoom.Server.Hubs
                                 });
                                 _db.SaveChanges();
                             }
-                            game.CurrentPlayer = game.Players.Where(p => p.IsPlaying).
-                                OrderBy(p => p.SeatNumber).
-                                First(p => p.SeatNumber +
-                                        (game.Players.Where(p => p.IsPlaying).Max(p => p.SeatNumber) == user.SeatNumber ? 6 : 0)
-                                > user.SeatNumber).Name;
+
+                            var nextPlayer = game.Players.Where(p => p.IsPlaying).OrderBy(p => p.SeatNumber).FirstOrDefault(p => p.SeatNumber > user.SeatNumber);
+                            if (nextPlayer == null)
+                                nextPlayer = game.Players.Where(p => p.IsPlaying).OrderBy(p => p.SeatNumber).First();
+                            game.CurrentPlayer = nextPlayer.Name;
 
                             await SendGameInformation(user.TableId);
                         }
@@ -521,16 +527,25 @@ namespace PokerBoom.Server.Hubs
                     if (player != null)
                     {
                         player.IsPlaying = false;
+                        _db.Bets.Add(new Entities.Bet
+                        {
+                            BetAmount = -1,
+                            Game = _db.Games.First(g => g.Id == game.Id),
+                            Player = _db.Players.First(p => p.SeatPlace == player.SeatNumber && p.GameId == game.Id),
+                            Round = (int)game.BetRound,
+                        });
+                        _db.SaveChanges();
                         if (game.Players.Where(p => p.IsPlaying).Count() < 2)
                         {
                             await NominateWinners(game);
                             return;
                         }
-                        game.CurrentPlayer = game.Players.Where(p => p.IsPlaying).
-                            OrderBy(p => p.SeatNumber).
-                            First(p => p.SeatNumber +
-                                    (game.Players.Where(p => p.IsPlaying).Max(p => p.SeatNumber) == user.SeatNumber ? 6 : 0)
-                            > user.SeatNumber).Name;
+
+                        var nextPlayer = game.Players.Where(p => p.IsPlaying).OrderBy(p => p.SeatNumber).FirstOrDefault(p => p.SeatNumber > user.SeatNumber);
+                        if (nextPlayer == null)
+                            nextPlayer = game.Players.Where(p => p.IsPlaying).OrderBy(p => p.SeatNumber).First();
+
+                        game.CurrentPlayer = nextPlayer.Name;
                     }
                 }
                 await SendGameInformation(user.TableId);
@@ -573,7 +588,9 @@ namespace PokerBoom.Server.Hubs
                 }
                 if (bet.BetAmount < 0)
                 {
-                    gameInformation.Players.FirstOrDefault(p => p.Username == bet.Player.User.UserName).IsPlaying = false;
+                    var player = gameInformation.Players.FirstOrDefault(p => p.Username == bet.Player.User.UserName);
+                    if (player != null)
+                        player.IsPlaying = false;
                 }
                 gameInformation.CurrentPlayer = bet.Player.User.UserName;
                 gameInformation.Players.Where(p => p.Username == gameInformation.CurrentPlayer).First().Bet = bet.BetAmount;

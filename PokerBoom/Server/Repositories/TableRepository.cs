@@ -54,7 +54,7 @@ namespace PokerBoom.Server.Repositories
             var tables = _db.Tables;
             tables.Add(new Entities.Table
             {
-                Id = tables.Count() == 0 ? 1 : tables.Count() + 1,
+                Id = tables.Count() == 0 ? 1 : tables.OrderBy(t => t.Id).Last().Id + 1,
                 Name = name,
                 SmallBlind = smallblind,
                 Players = 0
