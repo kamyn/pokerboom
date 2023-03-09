@@ -5,6 +5,10 @@ using System.Text.Json;
 using PokerBoom.Shared.Models;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Authorization;
+using PokerBoom.Client.States;
+using System.Net.Http;
+using System.Net.Http.Json;
+
 
 namespace PokerBoom.Client.Pages
 {
@@ -13,6 +17,8 @@ namespace PokerBoom.Client.Pages
         [Inject] protected ILocalStorageService _localStorage { get; set; }
         [Inject] protected NavigationManager _navigationManager { get; set; }
         [Inject] protected AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+        [Inject] protected HttpClient _httpClient { get; set; }
+        [Inject] protected BalanceState _balanceState { get; set; }
 
         protected ReviewGameInformation ReviewGameInformation { get; set; }
 
@@ -24,10 +30,15 @@ namespace PokerBoom.Client.Pages
             var token = await _localStorage.GetItemAsync<string>("authToken");
             AuthState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
 
+            var response = await _httpClient.GetAsync($"/api/balance?username={AuthState.User.Identity.Name}");
+            int balance = (await response.Content.ReadFromJsonAsync<GetBalanceViewModel>()).Balance;
+
+            _balanceState.OnBalanceChanged.Invoke(balance);
+
             try
             {
                 _hubConnection = new HubConnectionBuilder()
-                .WithUrl(_navigationManager.ToAbsoluteUri("/gamereviewhub"), options =>
+                .WithUrl(_navigationManager.ToAbsoluteUri("/gamehub"), options =>
                 {
                     options.AccessTokenProvider = () => Task.FromResult<string?>(token);
                     options.SkipNegotiation = true;
@@ -44,11 +55,14 @@ namespace PokerBoom.Client.Pages
 
                 var gameId = await _localStorage.GetItemAsync<int>("reviewGameId");
                 await _hubConnection.SendAsync("GetGame", gameId);
+                await base.OnInitializedAsync();
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 var message = ex.Message;
             }
+
+            StateHasChanged();
 
             await base.OnInitializedAsync();
         }

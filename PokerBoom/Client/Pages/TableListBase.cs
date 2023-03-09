@@ -25,6 +25,10 @@ namespace PokerBoom.Client.Pages
         protected string? searchTableString { get; set; }
         protected PokerTable? selectedTable { get; set; }
         protected IEnumerable<PokerTable>? Tables { get; set; }
+        protected string? ChangeBalanceUsername { get; set; }
+        protected int? ChangeBalanceValue { get; set; }
+        protected string? CreateNewTableName { get; set; }
+        protected int? CreateNewTableSmallBlind { get; set; }
 
         protected override async Task OnInitializedAsync()
         {
@@ -80,6 +84,53 @@ namespace PokerBoom.Client.Pages
                 await _localStorage.SetItemAsync("currentTable", selectedTable.Id);
                 await _localStorage.SetItemAsync("stackAmount", StackAmount);
                 _navigationManager.NavigateTo("/game");
+            }
+        }
+
+        protected async Task ChangeBalance()
+        {
+            if (_httpClient != null && ChangeBalanceUsername != null && ChangeBalanceValue != null)
+            {
+                var result = await _httpClient.PostAsJsonAsync("/api/changebalance", new ChangeBalanceViewModel
+                {
+                    UserName = ChangeBalanceUsername,
+                    BalanceValue = (int)ChangeBalanceValue
+                });
+            }
+        }
+
+        protected async Task CreateNewTable()
+        {
+            if (_httpClient != null && CreateNewTableName != null && CreateNewTableSmallBlind != null)
+            {
+                var result = await _httpClient.PostAsJsonAsync("/api/createnewtable", new CreateNewTableViewModel
+                {
+                    Name = CreateNewTableName,
+                    SmallBlind = (int)CreateNewTableSmallBlind
+                });
+                await Task.Delay(2000);
+                var resultTables = await _httpClient.GetFromJsonAsync<GetTablesResult>("/api/table");
+                if (resultTables != null && resultTables.Successful)
+                {
+                    Tables = resultTables.PokerTables;
+                }
+            }
+        }
+
+        protected async Task RemoveTable()
+        {
+            if (_httpClient != null && selectedTable != null)
+            {
+                var result = await _httpClient.PostAsJsonAsync("/api/removetable", new RemoveTableViewModel
+                {
+                    TableId = selectedTable.Id
+                });
+                await Task.Delay(2000);
+                var resultTables = await _httpClient.GetFromJsonAsync<GetTablesResult>("/api/table");
+                if (resultTables != null && resultTables.Successful)
+                {
+                    Tables = resultTables.PokerTables;
+                }
             }
         }
     }

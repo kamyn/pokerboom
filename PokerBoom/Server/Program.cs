@@ -18,13 +18,6 @@ using PokerBoom.Server.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-//builder.Services.AddResponseCompression(opts =>
-//{
-//    opts.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
-//        new[] { "application/octet-stream" });
-//});
-
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseMySql(
         builder.Configuration.GetConnectionString("DBConnection"),
@@ -94,6 +87,7 @@ builder.Services.AddSignalR();
 
 builder.Services.AddScoped<ITableRepository, TableRepository>();
 builder.Services.AddScoped<IGameRepository, GameRepository>();
+builder.Services.AddScoped<IUserRepostitory, UserRepository>();
 builder.Services.AddControllersWithViews();
 builder.Services.AddRazorPages();
 
@@ -133,7 +127,6 @@ app.UseAuthorization();
 app.MapRazorPages();
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
-app.MapHub<GameReviewHub>("/gamereviewhub");
 
 app.MapFallbackToFile("index.html");
 

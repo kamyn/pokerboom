@@ -10,6 +10,6 @@ namespace PokerBoom.Shared
     {
         public const string VK_AUTH_URL = "https://oauth.vk.com/authorize";
         public const string VK_CLIENT_ID = "51499596";
-        public const string VK_REDIRECT_URI = "https://localhost:49153/vklogin";
+        public const string VK_REDIRECT_URI = "https://localhost:7225/vklogin";
     }
 }

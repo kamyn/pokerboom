@@ -49,5 +49,28 @@ namespace PokerBoom.Server.Repositories
                 _db.SaveChanges();
             }
         }
+        public async Task<bool> CreateNewTable(string name, int smallblind)
+        {
+            var tables = _db.Tables;
+            tables.Add(new Entities.Table
+            {
+                Id = tables.Count() == 0 ? 1 : tables.Count() + 1,
+                Name = name,
+                SmallBlind = smallblind,
+                Players = 0
+            });
+            _db.SaveChanges();
+            return true;
+        }
+
+        public async Task<bool> RemoveTable(int tableId)
+        {
+            var tables = _db.Tables;
+            var table = _db.Tables.FirstOrDefault(t => t.Id == tableId);
+            if (table != null)
+                tables.Remove(table);
+            _db.SaveChanges();
+            return true;
+        }
     }
 }

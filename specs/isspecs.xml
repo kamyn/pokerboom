@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE ISSPECS SYSTEM "ISSpecs.dtd">
+<ISSPECS>
+    <DESCRIPTION>
+        <TITLE>
+            PokerBoom
+        </TITLE>
+        <SUBJ>
+            Онлайн-игра Веб-приложение для игры в покер. Игровой сервер должен обеспечивать аунтефикацию и авторизацию пользователей приложения, хранение данных о пользователях, выбор игрового стола, поддерживание непосредственно самой игры и ее состояния, а также логирование сыгранных партий.
+        </SUBJ>
+    </DESCRIPTION>
+
+    <DATA>
+        <ENTITY ent_id="user">
+            <PROPERTY>user_id</PROPERTY>
+            <PROPERTY>username</PROPERTY>
+            <PROPERTY>currency</PROPERTY>
+            <PROPERTY>password_hash</PROPERTY>
+            <PROPERTY>vk_id</PROPERTY>
+        </ENTITY>
+        <ENTITY ent_id="player">
+            <PROPERTY>player_id</PROPERTY>
+            <PROPERTY>user_id</PROPERTY>
+            <PROPERTY>game_id</PROPERTY>
+            <PROPERTY>stack</PROPERTY>
+            <PROPERTY>seat_place</PROPERTY>
+            <PROPERTY>first_card</PROPERTY>
+            <PROPERTY>second_card</PROPERTY>
+        </ENTITY>
+        <ENTITY ent_id="table">
+            <PROPERTY>table_id</PROPERTY>
+            <PROPERTY>name</PROPERTY>
+            <PROPERTY>smallblind</PROPERTY>
+        </ENTITY>
+        <ENTITY ent_id="game">
+            <PROPERTY>game_id</PROPERTY>
+            <PROPERTY>table_id</PROPERTY>
+            <PROPERTY>board_id</PROPERTY>
+        </ENTITY>
+        <ENTITY ent_id="bet">
+            <PROPERTY>game_id</PROPERTY>
+            <PROPERTY>player_id</PROPERTY>
+            <PROPERTY>round</PROPERTY>
+            <PROPERTY>bet</PROPERTY>
+        </ENTITY>
+        <ENTITY ent_id="board">
+            <PROPERTY>board_id</PROPERTY>
+            <PROPERTY>card_1</PROPERTY>
+            <PROPERTY>card_2</PROPERTY>
+            <PROPERTY>card_3</PROPERTY>
+            <PROPERTY>card_4</PROPERTY>
+            <PROPERTY>card_5</PROPERTY>
+        </ENTITY>
+        <RELATIONSHIP ent_ids="user player">
+            <PROPERTY>user_id</PROPERTY>
+        </RELATIONSHIP>
+        <RELATIONSHIP ent_ids="player game">
+            <PROPERTY>game_id</PROPERTY>
+        </RELATIONSHIP>
+        <RELATIONSHIP ent_ids="player bet">
+            <PROPERTY>player_id</PROPERTY>
+        </RELATIONSHIP>
+        <RELATIONSHIP ent_ids="game table">
+            <PROPERTY>table_id</PROPERTY>
+        </RELATIONSHIP>
+        <RELATIONSHIP ent_ids="game board">
+            <PROPERTY>board_id</PROPERTY>
+        </RELATIONSHIP>
+        <RELATIONSHIP ent_ids="game bet">
+            <PROPERTY>game_id</PROPERTY>
+        </RELATIONSHIP>
+        <CONSTRAINT>
+            Общие ограничения целостности должны соответствовать правилам игры, то есть в игре может учавствовать как минимум два человека, у каждого игрока есть только две карманные карты, на столе не может быть меньше пяти карт (даже в случае завершения партии досрочно), ставки игроков должны идти в соответсвии с правилами торгов. Как было написано выше, пользователь без прав не имеет доступа к приложению, а значит не может изменять данные в системе.
+        </CONSTRAINT>
+    </DATA>
+
+    <ROLES>
+        <ROLE>
+            <TITLE>
+                Пользователь
+            </TITLE>
+            <RESPONSIBILITY>
+                Обычный игрок, имеет возможность взаимодействия с приложение после авторизации. Может создавать игровые столы или присоединяться к ранее созданным, смотреть информацию о своем счете или о счете других игроков.
+            </RESPONSIBILITY>
+            <TOTALUSERS>
+                >1               
+            </TOTALUSERS>
+        </ROLE>
+        <ROLE>
+            <TITLE>
+                Администратор
+            </TITLE>
+            <RESPONSIBILITY>
+                Имеет возможность изменять балансы других игроков, создавать или удалять игровые столы, а также просматривать сыгранные партии.            
+            </RESPONSIBILITY>
+            <TOTALUSERS>
+                1               
+            </TOTALUSERS>
+        </ROLE>
+    </ROLES>
+
+    <TECHSPEC>
+        <TYPE>
+            UI
+        </TYPE>
+        <DEVTOOLS>
+            <DEV>
+                Язык программирования: C#
+            </DEV>
+            <DEV>
+                Веб-фреймворк: ASP.NET Core, Blazor WebAssembly, SignalR
+            </DEV>
+            <DEV>ORM: EntityFramework</DEV>
+        </DEVTOOLS>
+        <DBMS>
+            <TITLE>
+                MySQL
+            </TITLE>
+            <VERSION>
+                8.0.31
+            </VERSION>
+            <REASONING>
+            </REASONING>
+        </DBMS>
+        <TESTING>
+            <TEST></TEST>
+        </TESTING>
+    </TECHSPEC>
+</ISSPECS>

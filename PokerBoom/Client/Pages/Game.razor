@@ -89,7 +89,6 @@
             <MudButton Variant="Variant.Outlined" Color="Color.Primary" OnClick="Check" Disabled="isTurnPlayer">Чек</MudButton>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Call" Disabled="isTurnPlayer">Колл</MudButton>
             <MudButton Variant="Variant.Filled" Style="background-color: yellowgreen;" OnClick="Raise" Disabled="isTurnPlayer">Рейз</MudButton>
-            <MudButton Variant="Variant.Filled" Color="Color.Tertiary" OnClick="AllIn" Disabled="isTurnPlayer">Олл-ин</MudButton>
             <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="Fold" Disabled="isTurnPlayer">Фолд</MudButton>
             <MudSlider @bind-Value="RaiseBet" Min="@GameInformation.RoundRaiseAmount" Max="@GameInformation.Players.Where(p => p.IsPlaying).Min(p => p.Stack)"
                Color="Color.Info" Class="ml-3 mr-3" Size="Size.Medium" Disabled="isNotCheckPosible">Ставка: @RaiseBet.ToString()</MudSlider>

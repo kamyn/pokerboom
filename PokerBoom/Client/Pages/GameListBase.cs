@@ -1,6 +1,8 @@
 ﻿using Blazored.LocalStorage;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
 using MudBlazor;
+using PokerBoom.Client.States;
 using PokerBoom.Shared.Models;
 using System.Net.Http.Json;
 
@@ -11,6 +13,9 @@ namespace PokerBoom.Client.Pages
         [Inject] protected ILocalStorageService _localStorage { get; set; }
         [Inject] protected NavigationManager _navigationManager { get; set; }
         [Inject] protected HttpClient _httpClient { get; set; }
+        [Inject] protected BalanceState _balanceState { get; set; }
+        [Inject] public AuthenticationStateProvider AuthenticationStateProvider { get; set; }
+        public AuthenticationState AuthState { get; set; }
 
         protected int selectedRowNumber = -1;
         protected MudTable<GameReview>? mudTable { get; set; }
@@ -21,11 +26,19 @@ namespace PokerBoom.Client.Pages
 
         protected override async Task OnInitializedAsync()
         {
+            AuthState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+
             var result = await _httpClient.GetFromJsonAsync<GetGamesResultViewModel>("/api/games");
             if (result.Successful)
             {
                 Games = result.Games;
             }
+
+            var response = await _httpClient.GetAsync($"/api/balance?username={AuthState.User.Identity.Name}");
+            int balance = (await response.Content.ReadFromJsonAsync<GetBalanceViewModel>()).Balance;
+
+            _balanceState.OnBalanceChanged.Invoke(balance);
+
             StateHasChanged();
             await base.OnInitializedAsync();
         }

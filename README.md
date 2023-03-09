@@ -1,72 +1,61 @@
-# Техническое задание
+## Средства для запуска приложения
 
-## Описание
-### Название
-PokerBoom
-### Предметная область
-Онлайн-игра
-Веб-приложение для игры в покер. Игровой сервер должен обеспечивать аунтефикацию и авторизацию пользователей приложения, хранение данных о пользователях, выбор игрового стола, поддерживание непосредственно самой игры и ее состояния, а также логирование сыгранных партий.
+- Docker
+- MySQL (образ в docker)
+- .Net Core 3.1 SDK
+- Visual Studio 2019 и выше
 
-## Данные
-### Ограничения для каждого элемента данных
-- Сущность `user` (пользователь):             
-`user_id` int primary key auto_increment             
-`balance` float (>0)  
-`username` varchar(20) not null         
-`password_hash` varchar(200)             
-`vk_id` varchar(20)          
+## Развёртывание
 
-- Сущность `game` (игра):                
-`game_id` int primary key auto_increment   
-`table_id` foreign key    
-`board_id` foreign key  
+- Для запуска приложения нужно создать контейнер
+базы данных MySQL в docker. Для этого нужно выполнить команду:
+```
+docker run --env=MYSQL_ROOT_HOST=% \
+		--env=MYSQL_ROOT_PASSWORD=1234 \
+		--env=PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+		--env=MYSQL_UNIX_PORT=/var/lib/mysql/mysql.sock -p 3307:3306 \
+		--restart=no --runtime=runc -d mysql/mysql-server:latest
+```
+В этой команде можно указать имя пользователя и пароль для базы данных, а также локальный порт (в данном случае к базе можно подключиться локально через 3007 порт, например с помощью программы MySQL Workbench).
+Необходимо указать ip-адрес контейнера (узнать его можно с помощью команды `docker inspect {название контейнера}`), название и пароль базы данных в файле `appsettings.json`
 
-- Сущность `table` (игровой стол):               
-`table_id` int primary key auto_increment                
-`name` varchar(20)                      
-`smallblind` int not null (>0)                    
+- Добавить файл конфигурации для авторизации через сторонний сервис (VK) `AuthOptions.cs` в проекте `PokerBoom.Server` следующего содержания:
+```
+public static class AuthOptions
+    {
+        public const string ISSUER = "server";
+        public const string AUDIENCE = "pokerboom";
+        public const int EXPIRY_IN_DAY = 1;
+        public const string SECURITY_KEY = "***";
 
-- Сущность `player` (игрок):               
-`player_id` int primary key auto_increment               
-`user_id` foreign key                      
-`game_id` foreign key              
-`stack` float not null (>0)             
-`seat_place` int not null                  
-`first_card` int not null                       
-`second_card` int not null                          
+        public const string VK_CLIENT_ID = "***";
+        public const string VK_CLIENT_SECRET = "***";
+        public const string VK_CALLBACK_PATH = "/signin-vk-token";
+        public const string VK_AUTH_END_POINT = "https://oauth.vk.com/authorize";
+        public const string VK_TOKEN_END_POINT = "https://oauth.vk.com/access_token";
+    }
+```
 
-- Сущность `board` (карты на игровом столе):                        
-`board_id`  int primary key auto_increment             
-`card_1` int not null                                 
-`card_2` int not null                         
-`card_3` int not null                              
-`card_4` int not null                          
-`card_5` int not null                          
+Изменить значение порта и клиентского идентификатора стороннего сервиса авторизации в файле `Constants.cs` в проекте `PokerBoom.Shared`:
+```
+public static class Constants
+    {
+        public const string VK_AUTH_URL = "https://oauth.vk.com/authorize";
+        public const string VK_CLIENT_ID = "***";
+        public const string VK_REDIRECT_URI = "https://localhost:{port}/vklogin";
+    }
+``` 
 
-- Сущность `bet` (ставки игроков):                
-`game_id` foreign key                    
-`player_id` foreign key                          
-`round` int not null (>=0)                       
-`bet` float not null                       
+- Создать docker-контейнер проекта из docker-файла в Visual Studio.
 
-### Общие ограничения целостности
-Общие ограничения целостности должны соответствовать правилам игры, то есть в игре может учавствовать как минимум два человека, у каждого игрока есть только две карманные карты, на столе не может быть меньше пяти карт (даже в случае завершения партии досрочно), ставки игроков должны идти в соответсвии с правилами торгов. Как было написано выше, пользователь без прав не имеет доступа к приложению, а значит не может изменять данные в системе. 
+## Тестовые данные
 
-## Пользовательские роли
-#### Пользователь
-Обычный игрок, имеет возможность взаимодействия с приложение после авторизации. Может создавать игровые столы или присоединяться к ранее созданным, смотреть информацию о своем счете или о счете других игроков.
+По умолчанию создаются два пользователя `root` и `user` с паролями `123` и правами администратора и пользователя соответственно. Данные пользователей по умолчанию можно изменить в файле `DbInit.cs`. 
 
-#### Администратор
-Имеет возможность изменять балансы других игроков, создавать или удалять игровые столы, блокировать учетные записи других игроков, а также просматривать сыгранные партии.
+Также по умолчанию создается игровой стол `стол #1` в файле контекста базы данных `AppDbContext.cs`.
 
-## UI/API
+Изменения структуры базы данных задаются в файлах миграции, которые находятся в папке `Migrations`, для создания которой нужно выполнить команду `add-migration {название миграции}`, а для создания нужных таблиц в базе данных нужно применить миграцию с помощью команды `update-database` в терминале. По умолчанию все миграции будут применены автоматически при первом запуске проекта.
 
-- Авторизация: осуществляется для всех пользователей посредством входа через логин и пароль или с помощью стороннего сервиса аунтефикации (VK).
-- Выбор игрового стола: для присоединения к игровой сессии задается количество фишек для игры и выбирается игровой стол с нужными ставками.
-- Процесс игры: происходит по правилам Техасского Холдем покера. У игрока имеется две карманные карты, согласно правилам в каждом раунде торгов открываются общие карты на столе, а игроки делают ставки.
+## UI
 
-## Технологии разработки
-- Язык программирования: C#
-- Веб-фреймворк: ASP.NET Core, Blazor WebAssembly, SignalR
-- СУБД: MySQL
-- ORM: EntityFramework
+Для работы с приложением необходимо авторизация, это возможно сделать через пароль или сторонний сервис аутентификации (VK). После авторизации на главной странице будут доступны игровые столы, за которыми можно играть с другими людьми.

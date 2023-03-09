@@ -30,5 +30,38 @@ namespace PokerBoom.Server.Controllers
             var table = await _tableRepository.GetTableById(id);
             return Ok(new GetTableResult { Successful = true, PokerTable = table});
         }
+
+        [HttpPost]
+        [Route("/api/createnewtable")]
+        public async Task<IActionResult> CreateNewTable(CreateNewTableViewModel createNewTableVM)
+        {
+            if (createNewTableVM.Name != null)
+            {
+                var result = await _tableRepository.CreateNewTable(createNewTableVM.Name, createNewTableVM.SmallBlind);
+                if (result)
+                {
+                    return Ok(new CreateNewTableResultViewModel { Success = true });
+                }
+                return Ok(new CreateNewTableResultViewModel { Success = false });
+            }
+            return Ok(new CreateNewTableResultViewModel { Success = false });
+        }
+
+        [HttpPost]
+        [Route("/api/removetable")]
+        public async Task<IActionResult> RemoveTable(RemoveTableViewModel removeTableVM)
+        {
+            var user = HttpContext.User.Identity;
+            if (removeTableVM != null)
+            {
+                var result = await _tableRepository.RemoveTable(removeTableVM.TableId);
+                if(result)
+                {
+                    return Ok(new RemoveTableResultViewModel { Success = true });
+                }
+                return Ok(new RemoveTableResultViewModel { Success = false });
+            }
+            return Ok(new RemoveTableResultViewModel { Success = false });
+        }
     }
 }

@@ -12,14 +12,14 @@ namespace PokerBoom.Server.Data
             var userManager = provider.GetService<UserManager<ApplicationUser>>();
             if (userManager != null)
             {
-                var user1 = new ApplicationUser { UserName = "user1", EmailConfirmed = false, Currency = 1000 }; // new ApplicationUser { UserName = "pavel1", EmailConfirmed = false, VkId = "250617147", Currency = 1000 };
-                var user2 = new ApplicationUser { UserName = "user2", EmailConfirmed = false, Currency = 1000 };
-                var result1 = userManager.CreateAsync(user1, "123").GetAwaiter().GetResult();
-                var result2 = userManager.CreateAsync(user2, "123").GetAwaiter().GetResult();
+                var root = new ApplicationUser { UserName = "root", EmailConfirmed = false, Currency = 1000 };
+                var user = new ApplicationUser { UserName = "user", EmailConfirmed = false, Currency = 1000 };
+                var result1 = userManager.CreateAsync(root, "123").GetAwaiter().GetResult();
+                var result2 = userManager.CreateAsync(user, "123").GetAwaiter().GetResult();
                 if (result1.Succeeded && result2.Succeeded)
                 {
-                    userManager.AddToRoleAsync(user1, "Administrator").GetAwaiter().GetResult();
-                    userManager.AddToRoleAsync(user2, "Administrator").GetAwaiter().GetResult();
+                    userManager.AddToRoleAsync(root, "Administrator").GetAwaiter().GetResult();
+                    userManager.AddToRoleAsync(user, "User").GetAwaiter().GetResult();
                 }
             }
         }
